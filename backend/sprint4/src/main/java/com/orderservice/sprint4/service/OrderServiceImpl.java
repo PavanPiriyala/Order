@@ -1,9 +1,6 @@
 package com.orderservice.sprint4.service;
 
-import com.orderservice.sprint4.dto.OrderDetailsRequestDTO;
-import com.orderservice.sprint4.dto.OrderDetailsResponseDTO;
-import com.orderservice.sprint4.dto.OrderItemRequestDTO;
-import com.orderservice.sprint4.dto.OrderItemResponseDTO;
+import com.orderservice.sprint4.dto.*;
 import com.orderservice.sprint4.model.Order;
 import com.orderservice.sprint4.model.OrderInvoice;
 import com.orderservice.sprint4.model.OrderItem;
@@ -115,47 +112,6 @@ public class OrderServiceImpl implements OrderService{
     }
 
 
-//    public OrderDetailsResponseDTO getOrderDetails(Integer orderId) {
-//        Order order = orderRepository.findById(orderId)
-//                .orElseThrow(() -> new RuntimeException("Order not found"));
-//
-//        OrderDetailsResponseDTO response = new OrderDetailsResponseDTO();
-//        response.setOrderId(order.getOrderId());
-//        response.setUserId(order.getUserId());
-//        response.setOrderDate(order.getOrderDate());
-//        response.setOrderStatus(order.getOrderStatus());
-//        response.setPromoDiscount(order.getPromoDiscount());
-//        response.setOrderTotal(order.getOrderTotal());
-//
-//        // Map invoice
-//        if (order.getOrderInvoice() != null) {
-//            response.setInvoiceNumber(order.getOrderInvoice().getInvoiceNumber());
-//            response.setInvoiceDate(order.getOrderInvoice().getInvoiceDate());
-//            response.setInvoiceAmount(order.getOrderInvoice().getInvoiceAmount());
-//            response.setPaymentMode(order.getOrderInvoice().getPaymentMode());
-//        }
-//
-//        // Map order items
-//        List<OrderItemResponseDTO> items = order.getOrderItems().stream().map(item -> {
-//            OrderItemResponseDTO dto = new OrderItemResponseDTO();
-//            dto.setOrderItemId(item.getOrderItemId());
-//            dto.setProductId(item.getProductId());
-//            dto.setSku(item.getSku());
-//            dto.setQuantity(item.getQuantity());
-//            dto.setUnitPrice(item.getUnitPrice());
-//            dto.setDiscount(item.getDiscount());
-//            dto.setFinalPrice(item.getFinalPrice());
-//            dto.setSize(item.getSize());
-//            dto.setStatus(item.getStatus());
-//            dto.setSellerId(item.getSellerId());
-//            return dto;
-//        }).toList();
-//
-//        response.setOrderItems(items);
-//        return response;
-//    }
-
-
     @Override
     public OrderDetailsResponseDTO getOrderDetails(Integer orderId) {
         Order order = orderRepository.findById(orderId)
@@ -201,6 +157,32 @@ public class OrderServiceImpl implements OrderService{
 
         response.setOrderItems(itemDTOs);
         return response;
+    }
+
+    @Override
+    public List<OrderSummaryDTO> getOrders(Integer months){
+        int userId = 101;
+
+        validateUser(userId);
+
+        LocalDateTime cutoffDate = LocalDateTime.now().minusMonths(months);
+
+        List<Order> orders = orderRepository.findRecentOrdersByUserId(userId,cutoffDate);
+
+        List<OrderSummaryDTO> response = new ArrayList<>();
+
+        for(Order order: orders){
+            OrderSummaryDTO summaryDTO = OrderSummaryDTO.builder()
+                    .orderId(order.getOrderId())
+                    .orderDate(order.getOrderDate())
+                    .orderStatus(order.getOrderStatus())
+                    .orderTotal(order.getOrderTotal())
+                    .items(order.getOrderItems().stream().count()).build();
+            response.add(summaryDTO);
+
+        }
+        return response;
+
     }
 
 

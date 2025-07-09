@@ -1,6 +1,6 @@
-create database oms_db_f;
+create database oms_db_a;
 
-use oms_db_f;
+use oms_db_a;
 go
 
 
@@ -8,9 +8,10 @@ CREATE TABLE orders (
     id INT PRIMARY KEY IDENTITY,
     user_id INT NOT NULL,
     order_date DATETIME,
-    order_status VARCHAR(50),          --   "Pending", "Shipped", "Delivered"
+    order_status VARCHAR(20) CHECK (order_status IN ('Pending','Ordered', 'Cancelled', 'Failed')),          --   "Pending","Ordered", "Cancelled", "Failed"
 	promo_discount DECIMAL(10,2),
-    order_total DECIMAL(10, 2)
+    order_total DECIMAL(10, 2),
+	address_id INT NOT NULL
 );
 
 
@@ -24,8 +25,7 @@ CREATE TABLE order_items (
     discount DECIMAL(10,2),
     final_price DECIMAL(10,2),
     size VARCHAR(20),
-    color VARCHAR(30),
-    status VARCHAR(50),  -- e.g., Ordered, Cancelled, Returned
+    status VARCHAR(50) CHECK (status IN ('Ordered','Pending','Shipped', 'Cancelled', 'Returned', 'Failed')) ,  -- e.g., Ordered, Shipped, Cancelled, Returned, Failed
 	seller_id INT NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders(id),
 );
@@ -39,28 +39,20 @@ CREATE TABLE order_invoice (
     order_id INT,
     invoice_number VARCHAR(100),
     invoice_date DATETIME,
-    payment_mode VARCHAR(50),         --  "Credit Card", "UPI", "COD"
+    payment_mode VARCHAR(50) CHECK (payment_mode IN ('Card','Wallet','NetBanking', 'UPI', 'EMI','COD')),         --  "Credit Card", "UPI", "COD"
     invoice_amount DECIMAL(10, 2),
     FOREIGN KEY (order_id) REFERENCES orders(id)
 );
 
 
-CREATE TABLE shipments (
-    id INT PRIMARY KEY IDENTITY,
-    order_id INT,
-    shipment_status VARCHAR(50),       -- e.g., "In Transit", "Delivered"
-    shipment_tracking_id VARCHAR(100),
-    shipment_date DATETIME,
-    delivered_date DATETIME,
-    FOREIGN KEY (order_id) REFERENCES orders(id)
-);
 
 CREATE TABLE shipment_items (	
     id INT PRIMARY KEY IDENTITY,
-    shipment_id INT,
     order_item_id INT,
-    item_status VARCHAR(50),           -- e.g., "In Transit", "Delivered"
-    FOREIGN KEY (shipment_id) REFERENCES shipments(id),
+	item_tracking_id VARCHAR(50),
+    item_status VARCHAR(50) CHECK(item_status IN ('Pending', 'InTransit', 'Delivered')),           -- e.g., "Pending", "In Transit", "Delivered"
+	shipment_date DATETIME,
+	delivered_date DATETIME,
     FOREIGN KEY (order_item_id) REFERENCES order_items(id)
 );
 
@@ -70,7 +62,7 @@ CREATE TABLE order_returns (
     order_item_id INT,
     return_date DATETIME,
     return_reason VARCHAR(255),
-    return_status VARCHAR(50), -- e.g., Requested, Approved, Rejected, Completed
+    return_status VARCHAR(50) CHECK(return_status IN ('Requested', 'Approved', 'Rejected', 'Completed')), -- e.g., Requested, Approved, Rejected, Completed
     refund_amount DECIMAL(10,2), 
     FOREIGN KEY (order_item_id) REFERENCES order_items(id)
 );
