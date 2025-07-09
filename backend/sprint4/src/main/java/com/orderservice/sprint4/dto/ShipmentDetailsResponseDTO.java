@@ -1,6 +1,8 @@
 package com.orderservice.sprint4.dto;
 
 import com.orderservice.sprint4.dao.ShipmentItemDAO;
+import com.orderservice.sprint4.model.enmus.OrderStatus;
+import com.orderservice.sprint4.model.enmus.PaymentMode;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,8 +17,8 @@ import java.util.List;
 public class ShipmentDetailsResponseDTO {
     private Integer orderId;
     private LocalDateTime orderDate;
-    private String orderStatus;
-    private String paymentMode;
+    private OrderStatus orderStatus;
+    private PaymentMode paymentMode;
     private List<ShipmentItemDAO> items;
     // Lombok will generate all getters/setters/constructors/builders
     public Integer getOrderId() {
@@ -31,16 +33,16 @@ public class ShipmentDetailsResponseDTO {
     public void setOrderDate(LocalDateTime orderDate) {
         this.orderDate = orderDate;
     }
-    public String getOrderStatus() {
+    public OrderStatus getOrderStatus() {
         return orderStatus;
     }
-    public void setOrderStatus(String orderStatus) {
+    public void setOrderStatus(OrderStatus orderStatus) {
         this.orderStatus = orderStatus;
     }
-    public String getPaymentMode() {
+    public PaymentMode getPaymentMode() {
         return paymentMode;
     }
-    public void setPaymentMode(String paymentMode) {
+    public void setPaymentMode(PaymentMode paymentMode) {
         this.paymentMode = paymentMode;
     }
     public List<ShipmentItemDAO> getItems() {

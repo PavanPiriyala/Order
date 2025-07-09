@@ -1,6 +1,9 @@
 package com.orderservice.sprint4.dto;
 
 
+import com.orderservice.sprint4.model.enmus.OrderStatus;
+import com.orderservice.sprint4.model.enmus.PaymentMode;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -8,11 +11,12 @@ import java.util.List;
 public class OrderDetailsRequestDTO {
     private Integer userId;
     private LocalDateTime orderDate;
-    private String orderStatus;
+    private OrderStatus orderStatus;
     private BigDecimal promoDiscount;
     private BigDecimal orderTotal;
     private List<OrderItemRequestDTO> orderItemRequestDTOS;
-    private String paymentMode;
+    private PaymentMode paymentMode;
+    private Integer addressId;
 
 
     public Integer getUserId() {
@@ -31,11 +35,11 @@ public class OrderDetailsRequestDTO {
         this.orderDate = orderDate;
     }
 
-    public String getOrderStatus() {
+    public OrderStatus getOrderStatus() {
         return orderStatus;
     }
 
-    public void setOrderStatus(String orderStatus) {
+    public void setOrderStatus(OrderStatus orderStatus) {
         this.orderStatus = orderStatus;
     }
 
@@ -63,11 +67,15 @@ public class OrderDetailsRequestDTO {
         this.orderItemRequestDTOS = orderItemRequestDTOS;
     }
 
-    public String getPaymentMode() {
+    public PaymentMode getPaymentMode() {
         return paymentMode;
     }
 
-    public void setPaymentMode(String paymentMode) {
+    public void setPaymentMode(PaymentMode paymentMode) {
         this.paymentMode = paymentMode;
+    }
+
+    public Integer getAddressId() {
+        return addressId;
     }
 }

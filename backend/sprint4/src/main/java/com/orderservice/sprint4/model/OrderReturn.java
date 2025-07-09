@@ -1,5 +1,6 @@
 package com.orderservice.sprint4.model;
 
+import com.orderservice.sprint4.model.enmus.OrderReturnStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -25,8 +26,9 @@ public class OrderReturn {
     @Column(name = "return_reason")
     private String returnReason;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "return_status")
-    private String returnStatus;
+    private OrderReturnStatus returnStatus;
 
     @Column(name = "refund_amount")
     private BigDecimal refundAmount;
@@ -63,11 +65,11 @@ public class OrderReturn {
         this.returnReason = returnReason;
     }
 
-    public String getReturnStatus() {
+    public OrderReturnStatus getReturnStatus() {
         return returnStatus;
     }
 
-    public void setReturnStatus(String returnStatus) {
+    public void setReturnStatus(OrderReturnStatus returnStatus) {
         this.returnStatus = returnStatus;
     }
 

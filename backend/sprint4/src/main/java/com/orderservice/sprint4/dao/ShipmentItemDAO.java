@@ -1,5 +1,7 @@
 package com.orderservice.sprint4.dao;
 
+import com.orderservice.sprint4.model.enmus.ShipmentItemStatus;
+
 import java.time.LocalDateTime;
 
 public class ShipmentItemDAO {
@@ -8,7 +10,7 @@ public class ShipmentItemDAO {
     private String sku;
     private Integer quantity;
     private Integer seller;
-    private String itemStatus;
+    private ShipmentItemStatus itemStatus;
     private LocalDateTime shipmentDate;
     private LocalDateTime deliveredDate;
 
@@ -52,11 +54,11 @@ public class ShipmentItemDAO {
         this.seller = seller;
     }
 
-    public String getItemStatus() {
+    public ShipmentItemStatus getItemStatus() {
         return itemStatus;
     }
 
-    public void setItemStatus(String itemStatus) {
+    public void setItemStatus(ShipmentItemStatus itemStatus) {
         this.itemStatus = itemStatus;
     }
 

@@ -1,5 +1,6 @@
 package com.orderservice.sprint4.model;
 
+import com.orderservice.sprint4.model.enmus.OrderItemStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.antlr.v4.runtime.misc.NotNull;
@@ -45,9 +46,9 @@ public class OrderItem {
     @Column(name = "size", length = 20)
     private String size;
 
-
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 50)
-    private String status;
+    private OrderItemStatus status;
 
     @NotNull
     @Column(name = "seller_id")
@@ -125,11 +126,11 @@ public class OrderItem {
         this.size = size;
     }
 
-    public String getStatus() {
+    public OrderItemStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(OrderItemStatus status) {
         this.status = status;
     }
 

@@ -1,5 +1,6 @@
 package com.orderservice.sprint4.dto;
 
+import com.orderservice.sprint4.model.enmus.OrderItemStatus;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -14,7 +15,7 @@ public class OrderItemResponseDTO {
     private BigDecimal discount;
     private BigDecimal finalPrice;
     private String size;
-    private String status;
+    private OrderItemStatus status;
     private Integer sellerId;
 
     public Integer getOrderItemId() {
@@ -81,11 +82,11 @@ public class OrderItemResponseDTO {
         this.size = size;
     }
 
-    public String getStatus() {
+    public OrderItemStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(OrderItemStatus status) {
         this.status = status;
     }
 

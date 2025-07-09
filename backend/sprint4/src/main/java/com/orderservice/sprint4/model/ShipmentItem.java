@@ -1,5 +1,6 @@
 package com.orderservice.sprint4.model;
 
+import com.orderservice.sprint4.model.enmus.ShipmentItemStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -25,9 +26,9 @@ public class ShipmentItem {
     @Column(name = "item_tracking_id")
     private String itemTrackingId;
 
-
+    @Enumerated(EnumType.STRING)
     @Column(name = "item_status")
-    private String itemStatus;
+    private ShipmentItemStatus itemStatus;
 
     @Column(name = "shipment_date")
     private LocalDateTime shipmentDate;
@@ -83,11 +84,11 @@ public class ShipmentItem {
         this.orderItem = orderItem;
     }
 
-    public String getItemStatus() {
+    public ShipmentItemStatus getItemStatus() {
         return itemStatus;
     }
 
-    public void setItemStatus(String itemStatus) {
+    public void setItemStatus(ShipmentItemStatus itemStatus) {
         this.itemStatus = itemStatus;
     }
 }

@@ -7,6 +7,8 @@ import com.orderservice.sprint4.dto.OrderItemResponseDTO;
 import com.orderservice.sprint4.model.Order;
 import com.orderservice.sprint4.model.OrderInvoice;
 import com.orderservice.sprint4.model.OrderItem;
+import com.orderservice.sprint4.model.enmus.OrderItemStatus;
+import com.orderservice.sprint4.model.enmus.OrderStatus;
 import com.orderservice.sprint4.repository.OrderInvoiceRepository;
 import com.orderservice.sprint4.repository.OrderItemRepository;
 import com.orderservice.sprint4.repository.OrderRepository;
@@ -62,9 +64,11 @@ public class OrderServiceImpl implements OrderService{
             Order order = new Order();
             order.setUserId(dto.getUserId());
             order.setOrderDate(dto.getOrderDate());
-            order.setOrderStatus(dto.getOrderStatus());
+//            order.setOrderStatus(dto.getOrderStatus());
+            order.setOrderStatus(OrderStatus.Pending);
             order.setPromoDiscount(dto.getPromoDiscount());
             order.setOrderTotal(dto.getOrderTotal());
+            order.setAddressId(dto.getAddressId());
 
             Order savedOrder = orderRepository.save(order);
             System.out.println(savedOrder.toString());
@@ -81,15 +85,14 @@ public class OrderServiceImpl implements OrderService{
                 item.setDiscount(itemDto.getDiscount());
                 item.setFinalPrice(itemDto.getFinalPrice());
                 item.setSize(itemDto.getSize());
-                item.setStatus(itemDto.getStatus());
+//                item.setStatus(itemDto.getStatus());
+                item.setStatus(OrderItemStatus.Pending);
                 item.setSellerId(itemDto.getSellerId());
                 orderItems.add(item);
             }
             List<OrderItem> savedOrderItems = orderItemRepository.saveAll(orderItems);
 
             savedOrderItems.stream().toString();
-
-
 
 
             OrderInvoice invoice = new OrderInvoice();
@@ -99,7 +102,7 @@ public class OrderServiceImpl implements OrderService{
             invoice.setPaymentMode(dto.getPaymentMode());
 
 
-            String invoiceNumber = generateInvoiceNumber(dto.getUserId(), dto.getPaymentMode());
+            String invoiceNumber = generateInvoiceNumber(dto.getUserId(), String.valueOf(dto.getPaymentMode()));
             invoice.setInvoiceNumber(invoiceNumber);
 
             orderInvoiceRepository.save(invoice);
@@ -172,6 +175,7 @@ public class OrderServiceImpl implements OrderService{
         response.setOrderStatus(order.getOrderStatus());
         response.setPromoDiscount(order.getPromoDiscount());
         response.setOrderTotal(order.getOrderTotal());
+
 
         if (order.getOrderInvoice() != null) {
             response.setInvoiceNumber(order.getOrderInvoice().getInvoiceNumber());

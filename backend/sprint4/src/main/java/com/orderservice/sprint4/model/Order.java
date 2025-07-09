@@ -1,6 +1,7 @@
 package com.orderservice.sprint4.model;
 
 
+import com.orderservice.sprint4.model.enmus.OrderStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.antlr.v4.runtime.misc.NotNull;
@@ -26,14 +27,19 @@ public class Order {
     @Column(name = "order_date")
     private LocalDateTime orderDate;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "order_status", length = 50)
-    private String orderStatus;
+    private OrderStatus orderStatus;
 
     @Column(name = "promo_discount", precision = 10, scale = 2)
     private BigDecimal promoDiscount;
 
     @Column(name = "order_total", precision = 10, scale = 2)
     private BigDecimal orderTotal;
+
+    @NotNull
+    @Column(name = "address_id")
+    private Integer addressId;
 
     @OneToMany(mappedBy = "order")
     private List<OrderItem> orderItems;
@@ -65,11 +71,11 @@ public class Order {
         this.orderDate = orderDate;
     }
 
-    public String getOrderStatus() {
+    public OrderStatus getOrderStatus() {
         return orderStatus;
     }
 
-    public void setOrderStatus(String orderStatus) {
+    public void setOrderStatus(OrderStatus orderStatus) {
         this.orderStatus = orderStatus;
     }
 

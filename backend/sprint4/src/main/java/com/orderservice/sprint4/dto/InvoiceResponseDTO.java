@@ -1,5 +1,7 @@
 package com.orderservice.sprint4.dto;
 
+import com.orderservice.sprint4.model.enmus.PaymentMode;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -8,12 +10,12 @@ public class InvoiceResponseDTO {
     private Integer orderId;
     private String invioceNumber;
     private LocalDateTime invoiceDate;
-    private String paymentMode;
+    private PaymentMode paymentMode;
     private BigDecimal invoiceAmount;
 
     public InvoiceResponseDTO(){}
 
-    public InvoiceResponseDTO(Integer invoiceId, Integer orderId, String invioceNumber, LocalDateTime invoiceDate, String paymentMode, BigDecimal invoiceAmount) {
+    public InvoiceResponseDTO(Integer invoiceId, Integer orderId, String invioceNumber, LocalDateTime invoiceDate, PaymentMode paymentMode, BigDecimal invoiceAmount) {
         this.invoiceId = invoiceId;
         this.orderId = orderId;
         this.invioceNumber = invioceNumber;
@@ -54,11 +56,11 @@ public class InvoiceResponseDTO {
         this.invoiceDate = invoiceDate;
     }
 
-    public String getPaymentMode() {
+    public PaymentMode getPaymentMode() {
         return paymentMode;
     }
 
-    public void setPaymentMode(String paymentMode) {
+    public void setPaymentMode(PaymentMode paymentMode) {
         this.paymentMode = paymentMode;
     }
 

@@ -1,6 +1,7 @@
 package com.orderservice.sprint4.repository.custom;
 
 import com.orderservice.sprint4.dao.ShipmentItemDAO;
+import com.orderservice.sprint4.model.enmus.ShipmentItemStatus;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
@@ -42,7 +43,7 @@ public class CustomShipmentItemRepositoryImpl implements CustomShipmentItemRepos
             dao.setSku((String) row[2]);
             dao.setQuantity((Integer) row[3]);
             dao.setSeller((Integer) row[4]);
-            dao.setItemStatus((String) row[5]);
+            dao.setItemStatus((ShipmentItemStatus) row[5]);
             dao.setShipmentDate(row[6] != null ? ((java.sql.Timestamp) row[6]).toLocalDateTime() : null);
             dao.setDeliveredDate(row[7] != null ? ((java.sql.Timestamp) row[7]).toLocalDateTime() : null);
             result.add(dao);

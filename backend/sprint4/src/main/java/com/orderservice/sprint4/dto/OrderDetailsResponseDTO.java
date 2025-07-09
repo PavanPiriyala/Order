@@ -1,5 +1,7 @@
 package com.orderservice.sprint4.dto;
 
+import com.orderservice.sprint4.model.enmus.OrderStatus;
+import com.orderservice.sprint4.model.enmus.PaymentMode;
 import lombok.Data;
 import lombok.Setter;
 
@@ -13,10 +15,10 @@ public class OrderDetailsResponseDTO {
     private Integer orderId;
     private Integer userId;
     private LocalDateTime orderDate;
-    private String orderStatus;
+    private OrderStatus orderStatus;
     private BigDecimal promoDiscount;
     private BigDecimal orderTotal;
-    private String paymentMode;
+    private PaymentMode paymentMode;
     private String invoiceNumber;
     private LocalDateTime invoiceDate;
     private BigDecimal invoiceAmount;
@@ -47,11 +49,11 @@ public class OrderDetailsResponseDTO {
         this.orderDate = orderDate;
     }
 
-    public String getOrderStatus() {
+    public OrderStatus getOrderStatus() {
         return orderStatus;
     }
 
-    public void setOrderStatus(String orderStatus) {
+    public void setOrderStatus(OrderStatus orderStatus) {
         this.orderStatus = orderStatus;
     }
 
@@ -71,11 +73,11 @@ public class OrderDetailsResponseDTO {
         this.orderTotal = orderTotal;
     }
 
-    public String getPaymentMode() {
+    public PaymentMode getPaymentMode() {
         return paymentMode;
     }
 
-    public void setPaymentMode(String paymentMode) {
+    public void setPaymentMode(PaymentMode paymentMode) {
         this.paymentMode = paymentMode;
     }
 

@@ -1,5 +1,6 @@
 package com.orderservice.sprint4.model;
 
+import com.orderservice.sprint4.model.enmus.PaymentMode;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -26,8 +27,9 @@ public class OrderInvoice {
     @Column(name = "invoice_Date")
     private LocalDateTime invoiceDate;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "payment_mode")
-    private String paymentMode;
+    private PaymentMode paymentMode;
 
     @Column(name = "invoice_amount")
     private BigDecimal invoiceAmount;
@@ -64,11 +66,11 @@ public class OrderInvoice {
         this.invoiceDate = invoiceDate;
     }
 
-    public String getPaymentMode() {
+    public PaymentMode getPaymentMode() {
         return paymentMode;
     }
 
-    public void setPaymentMode(String paymentMode) {
+    public void setPaymentMode(PaymentMode paymentMode) {
         this.paymentMode = paymentMode;
     }
 
