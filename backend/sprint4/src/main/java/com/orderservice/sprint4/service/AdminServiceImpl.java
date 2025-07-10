@@ -1,0 +1,110 @@
+package com.orderservice.sprint4.service;
+
+import com.orderservice.sprint4.dto.OrderItemStatusRequestDTO;
+import com.orderservice.sprint4.dto.OrderStatusRequestDTO;
+import com.orderservice.sprint4.dto.ShipmentItemListDTO;
+import com.orderservice.sprint4.exception.OrderNotFoundException;
+import com.orderservice.sprint4.model.Order;
+import com.orderservice.sprint4.model.ShipmentItem;
+import com.orderservice.sprint4.model.enmus.OrderStatus;
+import com.orderservice.sprint4.model.enmus.ShipmentItemStatus;
+import com.orderservice.sprint4.repository.OrderRepository;
+import com.orderservice.sprint4.repository.ShipmentItemRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class AdminServiceImpl implements AdminService{
+
+    @Autowired
+    private OrderRepository orderRepository;
+
+    @Autowired
+    private ShipmentItemRepository shipmentItemRepository;
+
+
+
+    @Override
+    public void orderShipped(OrderItemStatusRequestDTO dto){
+        Optional.ofNullable(dto.getItemStatus())
+                .filter(stat -> stat == ShipmentItemStatus.InTransit)
+                .orElseThrow(()-> new RuntimeException("Wrong Input"));
+
+        ShipmentItem item = shipmentItemRepository.findByOrderItemOrderItemId(dto.getOrderItemId());
+
+        if(item==null){
+            throw new OrderNotFoundException(dto.getOrderItemId());
+        }if(!item.getItemStatus().equals(ShipmentItemStatus.Pending)){
+            throw new RuntimeException("Item already uptodate");
+        }
+
+
+        Optional.ofNullable(item)
+                .ifPresentOrElse(
+                        i -> {
+                            i.setItemStatus(dto.getItemStatus());
+                            shipmentItemRepository.save(i);
+                        },
+                        () -> {
+                            throw new RuntimeException("OrderItem not Found Exception");
+                        }
+                );
+    }
+
+    @Override
+    public void orderDelivered(OrderItemStatusRequestDTO dto){
+        Optional.ofNullable(dto.getItemStatus())
+                .filter(stat -> stat == ShipmentItemStatus.Delivered)
+                .orElseThrow(()-> new RuntimeException("Wrong Input"));
+
+
+        ShipmentItem item = shipmentItemRepository.findByOrderItemOrderItemId(dto.getOrderItemId());
+
+        if(item==null){
+            throw new OrderNotFoundException(dto.getOrderItemId());
+        }if(!item.getItemStatus().equals(ShipmentItemStatus.InTransit)){
+            throw new RuntimeException("Order is uptodate");
+        }
+
+
+        Optional.ofNullable(item)
+                .ifPresentOrElse(
+                        i -> {
+                            i.setItemStatus(dto.getItemStatus());
+                            shipmentItemRepository.save(i);
+                        },
+                        () -> {
+                            throw new RuntimeException("OrderItem not Found Exception");
+                        }
+                );
+
+    }
+
+    @Override
+    public List<ShipmentItemListDTO> getShipmentByStatus(ShipmentItemStatus itemStatus) {
+        if (itemStatus == null ||
+                !(itemStatus == ShipmentItemStatus.Pending ||
+                        itemStatus == ShipmentItemStatus.InTransit ||
+                        itemStatus == ShipmentItemStatus.Delivered)) {
+            throw new RuntimeException("Wrong Input");
+        }
+
+        List<ShipmentItem> shipmentItems = shipmentItemRepository.findByItemStatus(itemStatus);
+        if (shipmentItems == null || shipmentItems.isEmpty()) {
+            throw new RuntimeException("Items not found");
+        }
+
+        return shipmentItems.stream()
+                .map(item -> ShipmentItemListDTO.builder()
+                        .orderId(item.getOrderItem().getOrder().getOrderId())
+                        .orderItemId(item.getOrderItem().getOrderItemId())
+                        .itemStatus(item.getItemStatus())
+                        .shipmentDate(item.getShipmentDate())
+                        .build())
+                .toList();
+    }
+
+}

@@ -19,7 +19,7 @@ public class ShipmentItem {
 //    @JoinColumn(name = "shipment_id")
 //    private Shipment shipment;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "order_item_id")
     private OrderItem orderItem;
 
@@ -68,13 +68,6 @@ public class ShipmentItem {
         this.id = id;
     }
 
-//    public Shipment getShipment() {
-//        return shipment;
-//    }
-//
-//    public void setShipment(Shipment shipment) {
-//        this.shipment = shipment;
-//    }
 
     public OrderItem getOrderItem() {
         return orderItem;
