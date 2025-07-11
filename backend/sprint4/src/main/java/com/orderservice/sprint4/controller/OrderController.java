@@ -2,6 +2,7 @@ package com.orderservice.sprint4.controller;
 
 import com.orderservice.sprint4.dto.OrderDetailsRequestDTO;
 import com.orderservice.sprint4.dto.OrderDetailsResponseDTO;
+import com.orderservice.sprint4.dto.OrderStatusRequestDTO;
 import com.orderservice.sprint4.dto.OrderSummaryDTO;
 import com.orderservice.sprint4.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,8 +22,8 @@ public class OrderController {
     @PostMapping("/create")
     public ResponseEntity<String> createOrder(@RequestBody OrderDetailsRequestDTO dto){
         try{
-            String invoiceNumber = orderService.createOrderTransaction(dto);
-            return ResponseEntity.ok("Order created successfully with invoice number: "+invoiceNumber);
+            Integer orderId = Integer.valueOf(orderService.createOrderTransaction(dto));
+            return ResponseEntity.ok("Order created successfully with order Id: "+orderId);
         }catch (Exception e){
             return ResponseEntity.internalServerError().body("Error Occurred: " + e.getMessage());
         }
@@ -50,6 +51,10 @@ public class OrderController {
     }
 
 
+    @PatchMapping("/order/confirm")
+    public void orderConfirmation(@RequestBody OrderStatusRequestDTO dto) {
+        orderService.orderConfirm(dto);
+    }
 
 
 

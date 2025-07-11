@@ -2,6 +2,7 @@ package com.orderservice.sprint4.repository;
 
 import com.orderservice.sprint4.dao.ShipmentItemDAO;
 import com.orderservice.sprint4.model.ShipmentItem;
+import com.orderservice.sprint4.model.enmus.ShipmentItemStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -25,4 +26,10 @@ public interface ShipmentItemRepository extends JpaRepository<ShipmentItem,Integ
         WHERE oi.order_id = :orderId
     """, nativeQuery = true)
     List<ShipmentItemDAO> findShipmentItemsByOrderId(@Param("orderId") Integer orderId);
+
+
+    @Query("SELECT si FROM ShipmentItem si WHERE si.orderItem.orderItemId = :orderItemId")
+    ShipmentItem findByOrderItemOrderItemId(@Param("orderItemId") Integer orderItemId);
+
+    List<ShipmentItem> findByItemStatus(ShipmentItemStatus itemStatus);
 }

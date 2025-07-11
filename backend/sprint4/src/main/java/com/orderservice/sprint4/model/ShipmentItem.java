@@ -2,12 +2,14 @@ package com.orderservice.sprint4.model;
 
 import com.orderservice.sprint4.model.enmus.ShipmentItemStatus;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Data
+@Builder
 @Table(name = "shipment_items")
 public class ShipmentItem {
     @Id
@@ -19,7 +21,7 @@ public class ShipmentItem {
 //    @JoinColumn(name = "shipment_id")
 //    private Shipment shipment;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "order_item_id")
     private OrderItem orderItem;
 
@@ -68,13 +70,6 @@ public class ShipmentItem {
         this.id = id;
     }
 
-//    public Shipment getShipment() {
-//        return shipment;
-//    }
-//
-//    public void setShipment(Shipment shipment) {
-//        this.shipment = shipment;
-//    }
 
     public OrderItem getOrderItem() {
         return orderItem;
