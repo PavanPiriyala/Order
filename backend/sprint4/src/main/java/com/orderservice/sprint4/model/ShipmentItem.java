@@ -2,12 +2,14 @@ package com.orderservice.sprint4.model;
 
 import com.orderservice.sprint4.model.enmus.ShipmentItemStatus;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Data
+@Builder
 @Table(name = "shipment_items")
 public class ShipmentItem {
     @Id

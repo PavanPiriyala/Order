@@ -1,19 +1,21 @@
 package com.orderservice.sprint4.service;
 
 import com.orderservice.sprint4.dto.*;
+import com.orderservice.sprint4.exception.OrderNotFoundException;
 import com.orderservice.sprint4.model.Order;
 import com.orderservice.sprint4.model.OrderInvoice;
 import com.orderservice.sprint4.model.OrderItem;
+import com.orderservice.sprint4.model.ShipmentItem;
 import com.orderservice.sprint4.model.enmus.OrderItemStatus;
 import com.orderservice.sprint4.model.enmus.OrderStatus;
+import com.orderservice.sprint4.model.enmus.ShipmentItemStatus;
 import com.orderservice.sprint4.repository.OrderInvoiceRepository;
 import com.orderservice.sprint4.repository.OrderItemRepository;
 import com.orderservice.sprint4.repository.OrderRepository;
+import com.orderservice.sprint4.repository.ShipmentItemRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.lang.reflect.Method;
@@ -22,6 +24,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class OrderServiceImpl implements OrderService{
@@ -43,6 +46,9 @@ public class OrderServiceImpl implements OrderService{
 
     @Autowired
     private OrderRepository orderRepository;
+
+    @Autowired
+    private ShipmentItemRepository shipmentItemRepository;
 
 
     @Override
@@ -100,11 +106,12 @@ public class OrderServiceImpl implements OrderService{
 
 
             String invoiceNumber = generateInvoiceNumber(dto.getUserId(), String.valueOf(dto.getPaymentMode()));
+            Integer orderId = order.getOrderId();
             invoice.setInvoiceNumber(invoiceNumber);
 
             orderInvoiceRepository.save(invoice);
 
-            return invoiceNumber;
+            return orderId.toString();
 
         } catch (Exception e) {
             throw new RuntimeException("Transaction failed: " + e.getMessage(), e);
@@ -215,5 +222,70 @@ public class OrderServiceImpl implements OrderService{
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
         String timestamp = LocalDateTime.now().format(formatter);
         return "INV-" + timestamp + "-" + userId + "-" + paymentMode.toUpperCase();
+    }
+
+
+    private String generateTrackingId(Integer orderId,Integer orderItemId){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+        String timestamp = LocalDateTime.now().format(formatter);
+        return "TRK-"+timestamp+"-"+orderId+"-"+orderItemId;
+    }
+
+
+    @Override
+    public void orderConfirm(OrderStatusRequestDTO dto) {
+        if (!dto.getOrderStatus().equals(OrderStatus.Cancelled) &&
+                !dto.getOrderStatus().equals(OrderStatus.Ordered) &&
+                !dto.getOrderStatus().equals(OrderStatus.Failed)) {
+
+            throw new RuntimeException("Wrong input");
+        }
+
+        Order order = orderRepository.findById(dto.getOrderId())
+                .orElseThrow(() -> new OrderNotFoundException(dto.getOrderId()));
+
+        List<OrderItem> items = order.getOrderItems();
+
+        if (!order.getOrderStatus().equals(OrderStatus.Pending)) {
+            throw new RuntimeException("Order already uptodate");
+        }
+        if(dto.getOrderStatus().equals(OrderStatus.Ordered)) {
+
+            items.stream().forEach(item -> {
+                item.setStatus(OrderItemStatus.Ordered);
+                orderItemRepository.save(item);
+                ShipmentItem shipmentItem = ShipmentItem.builder()
+                        .orderItem(item)
+                        .itemTrackingId(generateTrackingId(item.getOrder().getOrderId(), item.getOrderItemId()))
+                        .itemStatus(ShipmentItemStatus.Pending)
+                        .shipmentDate(LocalDateTime.now())
+                        .deliveredDate(LocalDateTime.now().plusDays(7))
+                        .build();
+
+                shipmentItemRepository.save(shipmentItem);
+            });
+
+            order.setOrderStatus(dto.getOrderStatus());
+
+            orderRepository.saveAndFlush(order);
+            return;
+        }if(dto.getOrderStatus().equals(OrderStatus.Cancelled)){
+            items.stream().forEach(item->{
+                item.setStatus(OrderItemStatus.Cancelled);
+                orderItemRepository.save(item);
+            });
+            order.setOrderStatus(dto.getOrderStatus());
+
+            orderRepository.saveAndFlush(order);
+            return;
+        }if(dto.getOrderStatus().equals(OrderStatus.Failed)){
+            items.stream().forEach(item->{
+                item.setStatus(OrderItemStatus.Failed);
+                orderItemRepository.save(item);
+            });
+            order.setOrderStatus(dto.getOrderStatus());
+
+            orderRepository.saveAndFlush(order);
+        }
     }
 }
