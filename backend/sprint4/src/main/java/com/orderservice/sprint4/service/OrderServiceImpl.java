@@ -1,6 +1,8 @@
 package com.orderservice.sprint4.service;
 
 import com.orderservice.sprint4.dto.*;
+import com.orderservice.sprint4.exception.OrderNotFoundException;
+import com.orderservice.sprint4.exception.OrderTransactionException;
 import com.orderservice.sprint4.model.Order;
 import com.orderservice.sprint4.model.OrderInvoice;
 import com.orderservice.sprint4.model.OrderItem;
@@ -160,30 +162,45 @@ public class OrderServiceImpl implements OrderService{
     }
 
     @Override
-    public List<OrderSummaryDTO> getOrders(Integer months){
+    public List<OrderSummaryDTO> getOrders(Integer months) {
         int userId = 101;
 
-        validateUser(userId);
+        try {
+            // This should throw a custom UserNotFoundException (you can define it)
+            validateUser(userId);
 
-        LocalDateTime cutoffDate = LocalDateTime.now().minusMonths(months);
+            LocalDateTime cutoffDate = LocalDateTime.now().minusMonths(months);
 
-        List<Order> orders = orderRepository.findRecentOrdersByUserId(userId,cutoffDate);
+            List<Order> orders = orderRepository.findRecentOrdersByUserId(userId, cutoffDate);
 
-        List<OrderSummaryDTO> response = new ArrayList<>();
+            if (orders == null || orders.isEmpty()) {
+                throw new OrderNotFoundException("No recent orders found for user ID: " + userId);
+            }
 
-        for(Order order: orders){
-            OrderSummaryDTO summaryDTO = OrderSummaryDTO.builder()
-                    .orderId(order.getOrderId())
-                    .orderDate(order.getOrderDate())
-                    .orderStatus(order.getOrderStatus())
-                    .orderTotal(order.getOrderTotal())
-                    .items(order.getOrderItems().stream().count()).build();
-            response.add(summaryDTO);
+            List<OrderSummaryDTO> response = new ArrayList<>();
 
+            for (Order order : orders) {
+                OrderSummaryDTO summaryDTO = OrderSummaryDTO.builder()
+                        .orderId(order.getOrderId())
+                        .orderDate(order.getOrderDate())
+                        .orderStatus(order.getOrderStatus())
+                        .orderTotal(order.getOrderTotal())
+                        .items(order.getOrderItems().stream().count())
+                        .build();
+
+                response.add(summaryDTO);
+            }
+
+            return response;
+
+        } catch (OrderNotFoundException e) {
+            throw e; // will be caught by your @ExceptionHandler
+        } catch (Exception e) {
+            throw new OrderTransactionException("Failed to fetch recent orders", e);
         }
-        return response;
-
     }
+
+
 
 
     private void validateUser(Integer userId) {
