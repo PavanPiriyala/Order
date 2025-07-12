@@ -1,15 +1,14 @@
 package com.orderservice.sprint4.controller;
 
-import com.orderservice.sprint4.dto.OrderDetailsRequestDTO;
-import com.orderservice.sprint4.dto.OrderDetailsResponseDTO;
-import com.orderservice.sprint4.dto.OrderStatusRequestDTO;
-import com.orderservice.sprint4.dto.OrderSummaryDTO;
+import com.orderservice.sprint4.dto.*;
+import com.orderservice.sprint4.model.OrderItem;
 import com.orderservice.sprint4.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -20,12 +19,12 @@ public class OrderController {
     private OrderService orderService;
 
     @PostMapping("/create")
-    public ResponseEntity<String> createOrder(@RequestBody OrderDetailsRequestDTO dto){
+    public ResponseEntity<List<OrderItemInventoryDTO>> createOrder(@RequestBody OrderDetailsRequestDTO dto){
         try{
-            Integer orderId = Integer.valueOf(orderService.createOrderTransaction(dto));
-            return ResponseEntity.ok("Order created successfully with order Id: "+orderId);
+            List<OrderItemInventoryDTO> itmes = orderService.createOrderTransaction(dto);
+            return ResponseEntity.ok(itmes);
         }catch (Exception e){
-            return ResponseEntity.internalServerError().body("Error Occurred: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(Collections.emptyList());
         }
     }
 

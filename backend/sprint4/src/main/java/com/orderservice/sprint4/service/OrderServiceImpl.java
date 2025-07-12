@@ -15,7 +15,9 @@ import com.orderservice.sprint4.repository.OrderRepository;
 import com.orderservice.sprint4.repository.ShipmentItemRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.lang.reflect.Method;
@@ -28,11 +30,11 @@ import java.util.Optional;
 
 @Service
 public class OrderServiceImpl implements OrderService{
-//    @Value("${user.service.user.validation.url}")
-//    private String USER_SERVICE_USER_VALIDATION_URL;
+    @Value("${user.service.user.validation.url}")
+    private String USER_SERVICE_USER_VALIDATION_URL;
 //
-//    @Value("${product.service.product.validation.url}")
-//    private String PRODUCT_SERVICE_VALIDATION_URL;
+    @Value("${product.service.product.validation.url}")
+    private String PRODUCT_SERVICE_VALIDATION_URL;
 
     @Autowired
     private RestTemplate restTemplate;
@@ -53,7 +55,7 @@ public class OrderServiceImpl implements OrderService{
 
     @Override
     @Transactional
-    public String createOrderTransaction(OrderDetailsRequestDTO dto) {
+    public List<OrderItemInventoryDTO> createOrderTransaction(OrderDetailsRequestDTO dto) {
         try {
 
             validateUser(dto.getUserId());
@@ -78,8 +80,12 @@ public class OrderServiceImpl implements OrderService{
 
 
             List<OrderItem> orderItems = new ArrayList<>();
+            List<OrderItemInventoryDTO> inventoryDTOS = new ArrayList<>();
             for (OrderItemRequestDTO itemDto : dto.getOrderItemRequestDTOS()) {
                 OrderItem item = new OrderItem();
+
+
+
                 item.setOrder(savedOrder);
                 item.setProductId(itemDto.getProductId());
                 item.setSku(itemDto.getSku());
@@ -92,8 +98,19 @@ public class OrderServiceImpl implements OrderService{
                 item.setStatus(OrderItemStatus.Pending);
                 item.setSellerId(itemDto.getSellerId());
                 orderItems.add(item);
+
+
+
             }
             List<OrderItem> savedOrderItems = orderItemRepository.saveAll(orderItems);
+
+            savedOrderItems.forEach(item -> {
+                OrderItemInventoryDTO obj = new OrderItemInventoryDTO();
+                obj.setOrderId(item.getOrderItemId());
+                obj.setSku(item.getSku());
+                obj.setQuantity(item.getQuantity());
+                inventoryDTOS.add(obj);
+            });
 
             savedOrderItems.stream().toString();
 
@@ -111,7 +128,7 @@ public class OrderServiceImpl implements OrderService{
 
             orderInvoiceRepository.save(invoice);
 
-            return orderId.toString();
+            return inventoryDTOS;
 
         } catch (Exception e) {
             throw new RuntimeException("Transaction failed: " + e.getMessage(), e);
@@ -188,7 +205,6 @@ public class OrderServiceImpl implements OrderService{
 
             response.add(summaryDTO);
 
-
         }
         return response;
 
@@ -196,27 +212,26 @@ public class OrderServiceImpl implements OrderService{
 
 
     private void validateUser(Integer userId) {
-        return;
-//        try {
-//            String url = USER_SERVICE_USER_VALIDATION_URL + userId;
-//            restTemplate.getForEntity(url, String.class); // If 404, it will throw an exception
-//        } catch (HttpClientErrorException.NotFound ex) {
-//            throw new RuntimeException("User with ID " + userId + " does not exist");
-//        } catch (Exception ex) {
-//            throw new RuntimeException("Failed to verify user: " + ex.getMessage(), ex);
-//        }
+
+        try {
+            String url = USER_SERVICE_USER_VALIDATION_URL + userId.toString();
+            restTemplate.getForEntity(url, UserBasicInfoResponse.class).getBody(); // If 404, it will throw an exception
+        } catch (HttpClientErrorException.NotFound ex) {
+            throw new RuntimeException("User with ID " + userId + " does not exist");
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to verify user: " + ex.getMessage(), ex);
+        }
     }
 
     private void validateProduct(Integer productId){
-        return;
-//        try{
-//            String url = PRODUCT_SERVICE_VALIDATION_URL + productId;
-//            restTemplate.getForEntity(url,String.class);
-//        }catch( HttpClientErrorException.NotFound ex){
-//            throw new RuntimeException("Product with ID " + productId + " does not exist");
-//        }catch (Exception ex){
-//            throw new RuntimeException("Failed to verify product: "+ex.getMessage(),ex);
-//        }
+        try{
+            String url = PRODUCT_SERVICE_VALIDATION_URL + productId;
+            restTemplate.getForEntity(url,ProductDTO.class).getBody();
+        }catch( HttpClientErrorException.NotFound ex){
+            throw new RuntimeException("Product with ID " + productId + " does not exist");
+        }catch (Exception ex){
+            throw new RuntimeException("Failed to verify product: "+ex.getMessage(),ex);
+        }
     }
 
 
@@ -262,7 +277,6 @@ public class OrderServiceImpl implements OrderService{
                 shipmentItem.setItemStatus(ShipmentItemStatus.Pending);
                 shipmentItem.setShipmentDate(LocalDateTime.now());
                 shipmentItem.setDeliveredDate(LocalDateTime.now().plusDays(7));
-
 
 
                 shipmentItemRepository.save(shipmentItem);
