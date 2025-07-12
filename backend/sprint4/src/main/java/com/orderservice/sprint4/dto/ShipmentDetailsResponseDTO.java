@@ -13,14 +13,14 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+
 public class ShipmentDetailsResponseDTO {
     private Integer orderId;
     private LocalDateTime orderDate;
     private OrderStatus orderStatus;
     private PaymentMode paymentMode;
-    private List<ShipmentItemDAO> items;
-    // Lombok will generate all getters/setters/constructors/builders
+    private List<ShipmentItemDTO> items;
+
     public Integer getOrderId() {
         return orderId;
     }
@@ -45,10 +45,10 @@ public class ShipmentDetailsResponseDTO {
     public void setPaymentMode(PaymentMode paymentMode) {
         this.paymentMode = paymentMode;
     }
-    public List<ShipmentItemDAO> getItems() {
+    public List<ShipmentItemDTO> getItems() {
         return items;
     }
-    public void setItems(List<ShipmentItemDAO> items) {
+    public void setItems(List<ShipmentItemDTO> items) {
         this.items = items;
     }
 

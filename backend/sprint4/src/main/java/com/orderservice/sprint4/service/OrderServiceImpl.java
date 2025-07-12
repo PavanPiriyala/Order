@@ -182,21 +182,19 @@ public class OrderServiceImpl implements OrderService{
                 throw new OrderNotFoundException("No recent orders found for user ID: " + userId);
             }
 
-            List<OrderSummaryDTO> response = new ArrayList<>();
+        for(Order order: orders){
+            OrderSummaryDTO summaryDTO = new OrderSummaryDTO();
+            summaryDTO.setOrderId(order.getOrderId());
+            summaryDTO.setOrderDate(order.getOrderDate());
+            summaryDTO.setOrderStatus(order.getOrderStatus());
+            summaryDTO.setOrderTotal(order.getOrderTotal());
+            summaryDTO.setItems(order.getOrderItems().stream().count());
 
-            for (Order order : orders) {
-                OrderSummaryDTO summaryDTO = OrderSummaryDTO.builder()
-                        .orderId(order.getOrderId())
-                        .orderDate(order.getOrderDate())
-                        .orderStatus(order.getOrderStatus())
-                        .orderTotal(order.getOrderTotal())
-                        .items(order.getOrderItems().stream().count())
-                        .build();
+            response.add(summaryDTO);
 
-                response.add(summaryDTO);
-            }
 
-            return response;
+        }
+        return response;
 
         } catch (OrderNotFoundException e) {
             throw e; // will be caught by your @ExceptionHandler
@@ -269,13 +267,14 @@ public class OrderServiceImpl implements OrderService{
             items.stream().forEach(item -> {
                 item.setStatus(OrderItemStatus.Ordered);
                 orderItemRepository.save(item);
-                ShipmentItem shipmentItem = ShipmentItem.builder()
-                        .orderItem(item)
-                        .itemTrackingId(generateTrackingId(item.getOrder().getOrderId(), item.getOrderItemId()))
-                        .itemStatus(ShipmentItemStatus.Pending)
-                        .shipmentDate(LocalDateTime.now())
-                        .deliveredDate(LocalDateTime.now().plusDays(7))
-                        .build();
+                ShipmentItem shipmentItem = new ShipmentItem();
+                shipmentItem.setOrderItem(item);
+                shipmentItem.setItemTrackingId(generateTrackingId(item.getOrder().getOrderId(), item.getOrderItemId()));
+                shipmentItem.setItemStatus(ShipmentItemStatus.Pending);
+                shipmentItem.setShipmentDate(LocalDateTime.now());
+                shipmentItem.setDeliveredDate(LocalDateTime.now().plusDays(7));
+
+
 
                 shipmentItemRepository.save(shipmentItem);
             });

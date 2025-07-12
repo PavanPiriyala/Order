@@ -9,8 +9,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Data
-@Setter
+
 public class OrderDetailsResponseDTO {
     private Integer orderId;
     private Integer userId;

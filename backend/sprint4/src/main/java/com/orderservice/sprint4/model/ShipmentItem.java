@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 
 @Entity
 @Data
-@Builder
 @Table(name = "shipment_items")
 public class ShipmentItem {
     @Id
@@ -37,6 +36,17 @@ public class ShipmentItem {
 
     @Column(name = "delivered_date")
     private LocalDateTime deliveredDate;
+
+    public ShipmentItem(){}
+
+    public ShipmentItem(Integer id, OrderItem orderItem, String itemTrackingId, ShipmentItemStatus itemStatus, LocalDateTime shipmentDate, LocalDateTime deliveredDate) {
+        this.id = id;
+        this.orderItem = orderItem;
+        this.itemTrackingId = itemTrackingId;
+        this.itemStatus = itemStatus;
+        this.shipmentDate = shipmentDate;
+        this.deliveredDate = deliveredDate;
+    }
 
     public String getItemTrackingId() {
         return itemTrackingId;

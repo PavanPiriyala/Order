@@ -1,11 +1,10 @@
 package com.orderservice.sprint4.dto;
 
 import com.orderservice.sprint4.model.enmus.ShipmentItemStatus;
-import lombok.Builder;
 
 import java.time.LocalDateTime;
 
-@Builder
+
 public class ShipmentItemListDTO {
     private Integer orderId;
     private Integer orderItemId;
