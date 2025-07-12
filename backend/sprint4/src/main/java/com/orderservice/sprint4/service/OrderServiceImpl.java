@@ -167,16 +167,20 @@ public class OrderServiceImpl implements OrderService{
     }
 
     @Override
-    public List<OrderSummaryDTO> getOrders(Integer months){
+    public List<OrderSummaryDTO> getOrders(Integer months) {
         int userId = 101;
 
-        validateUser(userId);
+        try {
+            // This should throw a custom UserNotFoundException (you can define it)
+            validateUser(userId);
 
-        LocalDateTime cutoffDate = LocalDateTime.now().minusMonths(months);
+            LocalDateTime cutoffDate = LocalDateTime.now().minusMonths(months);
 
-        List<Order> orders = orderRepository.findRecentOrdersByUserId(userId,cutoffDate);
+            List<Order> orders = orderRepository.findRecentOrdersByUserId(userId, cutoffDate);
 
-        List<OrderSummaryDTO> response = new ArrayList<>();
+            if (orders == null || orders.isEmpty()) {
+                throw new OrderNotFoundException("No recent orders found for user ID: " + userId);
+            }
 
         for(Order order: orders){
             OrderSummaryDTO summaryDTO = new OrderSummaryDTO();
@@ -192,7 +196,14 @@ public class OrderServiceImpl implements OrderService{
         }
         return response;
 
+        } catch (OrderNotFoundException e) {
+            throw e; // will be caught by your @ExceptionHandler
+        } catch (Exception e) {
+            throw new OrderTransactionException("Failed to fetch recent orders", e);
+        }
     }
+
+
 
 
     private void validateUser(Integer userId) {

@@ -7,6 +7,7 @@ import com.itextpdf.text.pdf.PdfWriter;
 import com.orderservice.sprint4.dto.InvoiceResponseDTO;
 import com.orderservice.sprint4.dto.OrderDetailsResponseDTO;
 import com.orderservice.sprint4.dto.OrderItemResponseDTO;
+import com.orderservice.sprint4.exception.PdfGenerationException;
 import com.orderservice.sprint4.model.Order;
 import com.orderservice.sprint4.model.OrderItem;
 import com.orderservice.sprint4.repository.OrderInvoiceRepository;
@@ -95,7 +96,7 @@ public class InvoiceServiceImpl implements InvoiceService{
 
 
         } catch (DocumentException | IOException e) {
-            throw new RuntimeException(e);
+            throw new PdfGenerationException("Failed to generate invoice PDF for order ID: " + orderId, e);
         }
 
     }
