@@ -13,6 +13,7 @@ import com.orderservice.sprint4.repository.ShipmentItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -96,15 +97,19 @@ public class AdminServiceImpl implements AdminService{
         if (shipmentItems == null || shipmentItems.isEmpty()) {
             throw new RuntimeException("Items not found");
         }
+        List<ShipmentItemListDTO> listDTOS = new ArrayList<>();
 
-        return shipmentItems.stream()
-                .map(item -> ShipmentItemListDTO.builder()
-                        .orderId(item.getOrderItem().getOrder().getOrderId())
-                        .orderItemId(item.getOrderItem().getOrderItemId())
-                        .itemStatus(item.getItemStatus())
-                        .shipmentDate(item.getShipmentDate())
-                        .build())
-                .toList();
+        shipmentItems.forEach(item->{
+            ShipmentItemListDTO dto = new ShipmentItemListDTO();
+            dto.setOrderId(item.getOrderItem().getOrder().getOrderId());
+            dto.setOrderItemId(item.getOrderItem().getOrderItemId());
+            dto.setItemStatus(item.getItemStatus());
+            dto.setShipmentDate(item.getShipmentDate());
+            listDTOS.add(dto);
+        });
+
+
+        return listDTOS;
     }
 
 }

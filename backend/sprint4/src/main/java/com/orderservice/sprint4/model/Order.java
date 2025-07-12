@@ -47,6 +47,14 @@ public class Order {
     @OneToOne(mappedBy = "order")
     private OrderInvoice orderInvoice;
 
+    public Integer getAddressId() {
+        return addressId;
+    }
+
+    public void setAddressId(Integer addressId) {
+        this.addressId = addressId;
+    }
+
     public Integer getOrderId() {
         return orderId;
     }

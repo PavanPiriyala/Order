@@ -6,7 +6,6 @@
     import java.math.BigDecimal;
     import java.time.LocalDateTime;
 
-    @Builder
     public class OrderSummaryDTO {
         private Integer orderId;
         private LocalDateTime orderDate;

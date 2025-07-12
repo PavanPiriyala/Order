@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.HttpServerErrorException;
 
+import java.time.LocalDateTime;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -40,6 +42,17 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleOtherErrors(Exception ex) {
         return ResponseEntity.status(500).body("Something went wrong: " + ex.getMessage());
     }
+
+
+//    private ResponseEntity<ErrorResponse> buildResponse(HttpStatus status, String message) {
+//        ErrorResponse response = ErrorResponse.builder()
+//                .timestamp(LocalDateTime.now())
+//                .status(status.value())
+//                .error(status.getReasonPhrase())
+//                .message(message)
+//                .build();
+//        return new ResponseEntity<>(response, status);
+//    }
 
 }
 
