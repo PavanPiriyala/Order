@@ -1,9 +1,7 @@
 package com.orderservice.sprint4.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.orderservice.sprint4.dto.OrderDetailsRequestDTO;
-import com.orderservice.sprint4.dto.OrderDetailsResponseDTO;
-import com.orderservice.sprint4.dto.OrderResponseDTO;
+import com.orderservice.sprint4.dto.*;
 import com.orderservice.sprint4.service.OrderService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,7 +12,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.mockito.Mockito.*;
@@ -110,5 +110,38 @@ class OrderControllerTest {
         mockMvc.perform(get("/orders/1"))
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    void getOrdersList_success() throws Exception {
+        List<OrderSummaryDTO> mockOrders = new ArrayList<>();
+        mockOrders.add(new OrderSummaryDTO()); // Add mock data if needed
+
+        when(orderService.getOrders(7)).thenReturn(mockOrders);
+
+        mockMvc.perform(get("/orders/list/7"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void getOrdersList_failure() throws Exception {
+        when(orderService.getOrders(7)).thenThrow(new RuntimeException("Service error"));
+
+        mockMvc.perform(get("/orders/list/7"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void orderConfirmation_success() throws Exception {
+        OrderStatusRequestDTO dto = new OrderStatusRequestDTO(); // Populate fields if needed
+
+        doNothing().when(orderService).orderConfirm(any());
+
+        mockMvc.perform(patch("/orders/order/confirm")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isOk());
+    }
+
+
 }
 
