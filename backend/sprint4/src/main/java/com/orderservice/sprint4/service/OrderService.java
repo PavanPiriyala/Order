@@ -8,7 +8,8 @@ import java.util.List;
 public interface OrderService {
 
     void orderConfirm(OrderStatusRequestDTO dto);
-    List<OrderItemInventoryDTO> createOrderTransaction(OrderDetailsRequestDTO dto);
+    //Changed
+    OrderResponseDTO createOrderTransaction(OrderDetailsRequestDTO dto);
     OrderDetailsResponseDTO getOrderDetails(Integer orderId);
     List<OrderSummaryDTO> getOrders(Integer months);
 }
