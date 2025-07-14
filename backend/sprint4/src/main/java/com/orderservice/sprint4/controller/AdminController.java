@@ -7,6 +7,7 @@ import com.orderservice.sprint4.model.enmus.ShipmentItemStatus;
 import com.orderservice.sprint4.service.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,6 +30,9 @@ public class AdminController {
     public void orderDelivered(@RequestBody OrderItemStatusRequestDTO dto){
         adminService.orderDelivered(dto);
     }
+
+    @PatchMapping("/order/cancel")
+    public void orderCancilatioin(@RequestBody OrderItemStatusRequestDTO dto){adminService.orderCanelled(dto);}
 
     @GetMapping("/orders/get")
     public ResponseEntity<List<ShipmentItemListDTO>> getOrdersList(@RequestParam ShipmentItemStatus itemStatus) {

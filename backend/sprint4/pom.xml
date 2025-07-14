@@ -11,9 +11,9 @@
 	</parent>
 
 	<groupId>com.orderservice</groupId>
-	<artifactId>sprint4</artifactId>
+	<artifactId>oms</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>sprint4</name>
+	<name>oms</name>
 	<description>Sprint4 order management system</description>
 
 	<properties>
