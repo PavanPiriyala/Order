@@ -46,6 +46,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handlerPdfError(PdfGenerationException ex){
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
     }
+    @ExceptionHandler(UnauthorisedOrderAccessException.class)
+    public ResponseEntity<String> handleUnauthorisedOrderAccessError(UnauthorisedOrderAccessException ex){
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
+    }
 
     @ExceptionHandler(HttpServerErrorException.InternalServerError.class)
     public ResponseEntity<String> handleInternalServerError(HttpServerErrorException.InternalServerError ex) {

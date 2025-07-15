@@ -4,6 +4,7 @@ import com.orderservice.sprint4.dto.*;
 import com.orderservice.sprint4.exception.InventoryException;
 import com.orderservice.sprint4.exception.OrderNotFoundException;
 import com.orderservice.sprint4.exception.OrderTransactionException;
+import com.orderservice.sprint4.exception.UnauthorisedOrderAccessException;
 import com.orderservice.sprint4.model.Order;
 import com.orderservice.sprint4.model.OrderInvoice;
 import com.orderservice.sprint4.model.OrderItem;
@@ -40,12 +41,11 @@ public class OrderServiceImpl implements OrderService{
     @Value("${user.service.user.validation.url}")
     private String USER_SERVICE_USER_VALIDATION_URL;
 
-    @Value("${inventory.update.url}")
-    private String INVENTORY_UPDATE_URL;
-
-
     @Value("${product.service.product.validation.url}")
     private String PRODUCT_SERVICE_VALIDATION_URL;
+
+    @Value("${inventory.service.inventory.update-stock.url}")
+    private String INVENTRY_SERVICE_INVENTORY_UPDATE_STOCK_URL;
 
     @Autowired
     private RestTemplate restTemplate;
@@ -179,9 +179,14 @@ public class OrderServiceImpl implements OrderService{
 
 
     @Override
-    public OrderDetailsResponseDTO getOrderDetails(Integer orderId) {
+    public OrderDetailsResponseDTO getOrderDetails(Integer orderId,String token) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        Integer userId = jwtUtil.getUserIdFromToken(token);
+        if(userId != order.getUserId()){
+            throw new UnauthorisedOrderAccessException("You are Not a perfect user to access this data.");
+        }
 
         OrderDetailsResponseDTO response = new OrderDetailsResponseDTO();
 
@@ -226,40 +231,36 @@ public class OrderServiceImpl implements OrderService{
     }
 
     @Override
-    public List<OrderSummaryDTO> getOrders(Integer months) {
-        int userId = 101;
+    public List<OrderSummaryDTO> getOrders(Integer months,String token){
+        Integer userId = jwtUtil.getUserIdFromToken(token);
 
-        try {
-            // This should throw a custom UserNotFoundException (you can define it)
-            validateUser(userId);
+        validateUser(userId);
 
-            LocalDateTime cutoffDate = LocalDateTime.now().minusMonths(months);
+        LocalDateTime cutoffDate = LocalDateTime.now().minusMonths(months);
 
-            List<Order> orders = orderRepository.findRecentOrdersByUserId(userId, cutoffDate);
+        List<Order> orders = orderRepository.findRecentOrdersByUserId(userId,cutoffDate);
 
-            if (orders == null || orders.isEmpty()) {
-                throw new OrderNotFoundException("No recent orders found for user ID: " + userId);
-            }
-
-            List<OrderSummaryDTO> response = new ArrayList<>(); // Added By Bipul Since No Response was Found
-            for(Order order: orders){
-                OrderSummaryDTO summaryDTO = new OrderSummaryDTO();
-                summaryDTO.setOrderId(order.getOrderId());
-                summaryDTO.setOrderDate(order.getOrderDate());
-                summaryDTO.setOrderStatus(order.getOrderStatus());
-                summaryDTO.setOrderTotal(order.getOrderTotal());
-                summaryDTO.setItems(order.getOrderItems().stream().count());
-
-                response.add(summaryDTO);
-            }
-            return response;
-
-        } catch (OrderNotFoundException e) {
-            throw e; // will be caught by your @ExceptionHandler
-        } catch (Exception e) {
-            throw new OrderTransactionException("Failed to fetch recent orders", e);
+        if (orders == null || orders.isEmpty()) {
+            throw new OrderNotFoundException("No recent orders found for user ID: " + userId);
         }
+
+        List<OrderSummaryDTO> response = new ArrayList<>();
+
+        for(Order order: orders){
+            OrderSummaryDTO summaryDTO = new OrderSummaryDTO();
+            summaryDTO.setOrderId(order.getOrderId());
+            summaryDTO.setOrderDate(order.getOrderDate());
+            summaryDTO.setOrderStatus(order.getOrderStatus());
+            summaryDTO.setOrderTotal(order.getOrderTotal());
+            summaryDTO.setItems(order.getOrderItems().stream().count());
+
+            response.add(summaryDTO);
+
+        }
+        return response;
+
     }
+
 
     private void validateUser(Integer userId) {
 
@@ -298,38 +299,6 @@ public class OrderServiceImpl implements OrderService{
         return "TRK-"+timestamp+"-"+orderId+"-"+orderItemId;
     }
 
-    private void updateInventoryStock(List<Map<String, Object>> updatePayload) {
-        try {
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<List<Map<String, Object>>> requestEntity = new HttpEntity<>(updatePayload, headers);
-
-            restTemplate.exchange(INVENTORY_UPDATE_URL, HttpMethod.POST, requestEntity, Void.class);
-        } catch (RestClientException ex) {
-            throw new InventoryException("Failed to update inventory", ex);
-        } catch (Exception e){
-            throw new RuntimeException("Something went wrong");
-        }
-    }
-
-    public void sendEmail(String token,boolean status){
-        String email = jwtUtil.getUsernameFromToken(token);
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(email);
-        String subject = "";
-        String msg = "";
-        if(status){
-            subject = "Order Confirmation Mail";
-            msg = "Your order has been Confirmed.";
-        }else{
-            subject = "Order Failure Mail";
-            msg = "Your order has been Failed.";
-        }
-        message.setSubject(subject);
-        message.setText(msg);
-        mailSender.send(message);
-
-    }
 
     @Override
     public void orderConfirm(OrderStatusRequestDTO dto) {
@@ -387,4 +356,39 @@ public class OrderServiceImpl implements OrderService{
             orderRepository.saveAndFlush(order);
         }
     }
+
+
+    private void updateInventoryStock(List<Map<String, Object>> updatePayload) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<List<Map<String, Object>>> requestEntity = new HttpEntity<>(updatePayload, headers);
+
+            restTemplate.exchange(INVENTRY_SERVICE_INVENTORY_UPDATE_STOCK_URL, HttpMethod.POST, requestEntity, Void.class);
+        } catch (RestClientException ex) {
+            throw new InventoryException("Failed to update inventory", ex);
+        } catch (Exception e){
+            throw new RuntimeException("Something went wrong");
+        }
+    }
+
+    public void sendEmail(String token,boolean status){
+        String email = jwtUtil.getUsernameFromToken(token);
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(email);
+        String subject = "";
+        String msg = "";
+        if(status){
+            subject = "Order Confirmation Mail";
+            msg = "Your order has been Confirmed.";
+        }else{
+            subject = "Order Failure Mail";
+            msg = "Your order has been Failed.";
+        }
+        message.setSubject(subject);
+        message.setText(msg);
+        mailSender.send(message);
+
+    }
+
 }
