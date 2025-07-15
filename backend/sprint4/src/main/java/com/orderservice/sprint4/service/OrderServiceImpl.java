@@ -1,7 +1,9 @@
 package com.orderservice.sprint4.service;
 
 import com.orderservice.sprint4.dto.*;
+import com.orderservice.sprint4.exception.InventoryException;
 import com.orderservice.sprint4.exception.OrderNotFoundException;
+import com.orderservice.sprint4.exception.OrderTransactionException;
 import com.orderservice.sprint4.model.Order;
 import com.orderservice.sprint4.model.OrderInvoice;
 import com.orderservice.sprint4.model.OrderItem;
@@ -16,29 +18,34 @@ import com.orderservice.sprint4.repository.ShipmentItemRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class OrderServiceImpl implements OrderService{
     @Value("${user.service.user.validation.url}")
     private String USER_SERVICE_USER_VALIDATION_URL;
-//
+
+    @Value("${inventory.update.url}")
+    private String INVENTORY_UPDATE_URL;
+
+
     @Value("${product.service.product.validation.url}")
     private String PRODUCT_SERVICE_VALIDATION_URL;
 
     @Autowired
     private RestTemplate restTemplate;
-
 
     @Autowired
     private OrderInvoiceRepository orderInvoiceRepository;
@@ -52,40 +59,33 @@ public class OrderServiceImpl implements OrderService{
     @Autowired
     private ShipmentItemRepository shipmentItemRepository;
 
-
     @Override
     @Transactional
-    public List<OrderItemInventoryDTO> createOrderTransaction(OrderDetailsRequestDTO dto) {
+    public OrderResponseDTO createOrderTransaction(OrderDetailsRequestDTO dto) {
         try {
-
             validateUser(dto.getUserId());
-
             for (OrderItemRequestDTO itemDto : dto.getOrderItemRequestDTOS()) {
                 validateProduct(itemDto.getProductId());
             }
 
-
-
             Order order = new Order();
             order.setUserId(dto.getUserId());
             order.setOrderDate(dto.getOrderDate());
-//            order.setOrderStatus(dto.getOrderStatus());
             order.setOrderStatus(OrderStatus.Pending);
             order.setPromoDiscount(dto.getPromoDiscount());
             order.setOrderTotal(dto.getOrderTotal());
             order.setAddressId(dto.getAddressId());
 
             Order savedOrder = orderRepository.save(order);
-            System.out.println(savedOrder.toString());
-
 
             List<OrderItem> orderItems = new ArrayList<>();
-            List<OrderItemInventoryDTO> inventoryDTOS = new ArrayList<>();
+            Map<String, String> skuToOrderItemIdMap = new HashMap<>();
+
+            // ✅ FIX: Declare inventoryPayload here
+            List<Map<String, Object>> inventoryPayload = new ArrayList<>();
+
             for (OrderItemRequestDTO itemDto : dto.getOrderItemRequestDTOS()) {
                 OrderItem item = new OrderItem();
-
-
-
                 item.setOrder(savedOrder);
                 item.setProductId(itemDto.getProductId());
                 item.setSku(itemDto.getSku());
@@ -94,41 +94,45 @@ public class OrderServiceImpl implements OrderService{
                 item.setDiscount(itemDto.getDiscount());
                 item.setFinalPrice(itemDto.getFinalPrice());
                 item.setSize(itemDto.getSize());
-//                item.setStatus(itemDto.getStatus());
                 item.setStatus(OrderItemStatus.Pending);
                 item.setSellerId(itemDto.getSellerId());
                 orderItems.add(item);
-
-
-
             }
+
             List<OrderItem> savedOrderItems = orderItemRepository.saveAll(orderItems);
 
-            savedOrderItems.forEach(item -> {
-                OrderItemInventoryDTO obj = new OrderItemInventoryDTO();
-                obj.setOrderId(item.getOrderItemId());
-                obj.setSku(item.getSku());
-                obj.setQuantity(item.getQuantity());
-                inventoryDTOS.add(obj);
-            });
+            for (OrderItem item : savedOrderItems) {
+                skuToOrderItemIdMap.put(item.getSku(), "ORDITEM_" + item.getOrderItemId());
 
-            savedOrderItems.stream().toString();
+                Map<String, Object> inventoryData = new HashMap<>();
+                inventoryData.put("sku", item.getSku());
+                inventoryData.put("quantity", item.getQuantity());
+                inventoryData.put("orderItemId", item.getOrderItemId());
 
+                inventoryPayload.add(inventoryData);
+            }
 
             OrderInvoice invoice = new OrderInvoice();
             invoice.setOrder(savedOrder);
             invoice.setInvoiceDate(LocalDateTime.now());
             invoice.setInvoiceAmount(savedOrder.getOrderTotal());
             invoice.setPaymentMode(dto.getPaymentMode());
-
-
-            String invoiceNumber = generateInvoiceNumber(dto.getUserId(), String.valueOf(dto.getPaymentMode()));
-            Integer orderId = order.getOrderId();
-            invoice.setInvoiceNumber(invoiceNumber);
-
+            invoice.setInvoiceNumber(generateInvoiceNumber(dto.getUserId(), String.valueOf(dto.getPaymentMode())));
             orderInvoiceRepository.save(invoice);
 
-            return inventoryDTOS;
+            // Call inventory To update here
+            try {
+                updateInventoryStock(inventoryPayload);
+                return OrderResponseDTO.builder()
+                        .orderItemIds(skuToOrderItemIdMap)
+                        .status("success")
+                        .build();
+            } catch (InventoryException ex) {
+                return OrderResponseDTO.builder()
+                        .orderItemIds(skuToOrderItemIdMap)
+                        .status("failure")
+                        .build();
+            }
 
         } catch (Exception e) {
             throw new RuntimeException("Transaction failed: " + e.getMessage(), e);
@@ -199,18 +203,18 @@ public class OrderServiceImpl implements OrderService{
                 throw new OrderNotFoundException("No recent orders found for user ID: " + userId);
             }
 
-        for(Order order: orders){
-            OrderSummaryDTO summaryDTO = new OrderSummaryDTO();
-            summaryDTO.setOrderId(order.getOrderId());
-            summaryDTO.setOrderDate(order.getOrderDate());
-            summaryDTO.setOrderStatus(order.getOrderStatus());
-            summaryDTO.setOrderTotal(order.getOrderTotal());
-            summaryDTO.setItems(order.getOrderItems().stream().count());
+            List<OrderSummaryDTO> response = null; // Added By Bipul Since No Response was Found
+            for(Order order: orders){
+                OrderSummaryDTO summaryDTO = new OrderSummaryDTO();
+                summaryDTO.setOrderId(order.getOrderId());
+                summaryDTO.setOrderDate(order.getOrderDate());
+                summaryDTO.setOrderStatus(order.getOrderStatus());
+                summaryDTO.setOrderTotal(order.getOrderTotal());
+                summaryDTO.setItems(order.getOrderItems().stream().count());
 
-            response.add(summaryDTO);
-
-        }
-        return response;
+                response.add(summaryDTO);
+            }
+            return response;
 
         } catch (OrderNotFoundException e) {
             throw e; // will be caught by your @ExceptionHandler
@@ -218,9 +222,6 @@ public class OrderServiceImpl implements OrderService{
             throw new OrderTransactionException("Failed to fetch recent orders", e);
         }
     }
-
-
-
 
     private void validateUser(Integer userId) {
 
@@ -245,18 +246,28 @@ public class OrderServiceImpl implements OrderService{
         }
     }
 
-
     private String generateInvoiceNumber(Integer userId, String paymentMode) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
         String timestamp = LocalDateTime.now().format(formatter);
         return "INV-" + timestamp + "-" + userId + "-" + paymentMode.toUpperCase();
     }
 
-
     private String generateTrackingId(Integer orderId,Integer orderItemId){
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
         String timestamp = LocalDateTime.now().format(formatter);
         return "TRK-"+timestamp+"-"+orderId+"-"+orderItemId;
+    }
+
+    private void updateInventoryStock(List<Map<String, Object>> updatePayload) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<List<Map<String, Object>>> requestEntity = new HttpEntity<>(updatePayload, headers);
+
+            restTemplate.exchange(INVENTORY_UPDATE_URL, HttpMethod.POST, requestEntity, Void.class);
+        } catch (RestClientException ex) {
+            throw new InventoryException("Failed to update inventory", ex);
+        }
     }
 
 
