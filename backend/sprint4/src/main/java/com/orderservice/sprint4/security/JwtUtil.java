@@ -34,6 +34,15 @@ public class JwtUtil {
         }
     }
 
+    public Integer getUserIdFromToken(String token){
+        try{
+            return (Integer) Jwts.parserBuilder().setSigningKey(key).build()
+                    .parseClaimsJws(token).getBody().get("userId");
+        }catch (JwtException | IllegalArgumentException e) {
+            throw new JwtAuthenticationException("Invalid JWT token", e);
+        }
+    }
+
     public List<String> getRolesFromToken(String token) {
         try {
             Claims claims = Jwts.parserBuilder().setSigningKey(key).build()

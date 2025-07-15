@@ -4,6 +4,7 @@ import com.orderservice.sprint4.dto.LoginDTO;
 import com.orderservice.sprint4.dto.LoginResponseDTO;
 import com.orderservice.sprint4.exception.ExternalServiceException;
 import com.orderservice.sprint4.exception.InvalidLoginException;
+import com.orderservice.sprint4.security.JwtUtil;
 import com.orderservice.sprint4.service.LoginService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +23,9 @@ public class LoginServiceImpl implements LoginService {
     @Autowired
     private RestTemplate restTemplate;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     @Override
     public String validateLogin(LoginDTO dto) {
         try {
@@ -38,7 +42,13 @@ public class LoginServiceImpl implements LoginService {
                 throw new InvalidLoginException("Login failed: token not found");
             }
 
-            return body.getToken();
+            String token = body.getToken();
+
+            if (jwtUtil.validateAdminRole(token)) {
+                return token;
+            } else {
+                throw new RuntimeException("Something went wrong with Login Service");
+            }
 
         } catch (HttpClientErrorException e) {
             throw new InvalidLoginException("Invalid credentials or bad request: " + e.getMessage());

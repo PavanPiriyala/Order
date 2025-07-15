@@ -38,9 +38,11 @@ public class OrderController {
 
 
     @GetMapping("/{orderId}")
-    public ResponseEntity<OrderDetailsResponseDTO> getOrderDetails(@PathVariable Integer orderId) {
+    public ResponseEntity<OrderDetailsResponseDTO> getOrderDetails(@PathVariable Integer orderId,HttpServletRequest request) {
         try {
-            OrderDetailsResponseDTO orderDetails = orderService.getOrderDetails(orderId);
+            String header = request.getHeader("Authorization");
+            String token = header.substring(7);
+            OrderDetailsResponseDTO orderDetails = orderService.getOrderDetails(orderId,token);
             return ResponseEntity.ok(orderDetails);
         } catch (RuntimeException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
@@ -48,10 +50,11 @@ public class OrderController {
     }
 
     @GetMapping("/list/{month}")
-    public ResponseEntity<?> getOrdersList(@PathVariable Integer month){
-        System.out.println("In list method");
+    public ResponseEntity<?> getOrdersList(@PathVariable Integer month,HttpServletRequest request){
         try{
-            List<OrderSummaryDTO> orders = orderService.getOrders(month);
+            String header = request.getHeader("Authorization");
+            String token = header.substring(7);
+            List<OrderSummaryDTO> orders = orderService.getOrders(month,token);
             return ResponseEntity.ok(orders);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
