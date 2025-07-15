@@ -15,4 +15,6 @@ public interface AdminService {
     void orderDelivered(OrderItemStatusRequestDTO dto);
 
     List<ShipmentItemListDTO> getShipmentByStatus(ShipmentItemStatus itemStatus);
+
+    void orderCanelled(OrderItemStatusRequestDTO dto);
 }

@@ -1,31 +1,38 @@
 package com.orderservice.sprint4.controller;
 
-import com.orderservice.sprint4.dto.OrderDetailsRequestDTO;
-import com.orderservice.sprint4.dto.OrderDetailsResponseDTO;
-import com.orderservice.sprint4.dto.OrderStatusRequestDTO;
-import com.orderservice.sprint4.dto.OrderSummaryDTO;
+import com.orderservice.sprint4.dto.*;
+import com.orderservice.sprint4.model.OrderItem;
 import com.orderservice.sprint4.service.OrderService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 
 @RestController
 @RequestMapping("/orders")
-@CrossOrigin("*")
 public class OrderController {
     @Autowired
     private OrderService orderService;
 
+    //Changes By Bipul : as Now No need to send Order-Items Id back To cart_and_checkout.
     @PostMapping("/create")
-    public ResponseEntity<String> createOrder(@RequestBody OrderDetailsRequestDTO dto){
-        try{
-            Integer orderId = Integer.valueOf(orderService.createOrderTransaction(dto));
-            return ResponseEntity.ok("Order created successfully with order Id: "+orderId);
-        }catch (Exception e){
-            return ResponseEntity.internalServerError().body("Error Occurred: " + e.getMessage());
+    public ResponseEntity<OrderResponseDTO> createOrder(@RequestBody OrderDetailsRequestDTO dto,HttpServletRequest request) {
+        try {
+            String header = request.getHeader("Authorization");
+            String token = header.substring(7);
+            OrderResponseDTO response = orderService.createOrderTransaction(dto,token);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(
+                    OrderResponseDTO.builder()
+                            .orderItemIds(Collections.emptyMap())
+                            .status("failure")
+                            .build()
+            );
         }
     }
 
@@ -42,6 +49,7 @@ public class OrderController {
 
     @GetMapping("/list/{month}")
     public ResponseEntity<?> getOrdersList(@PathVariable Integer month){
+        System.out.println("In list method");
         try{
             List<OrderSummaryDTO> orders = orderService.getOrders(month);
             return ResponseEntity.ok(orders);
@@ -55,9 +63,5 @@ public class OrderController {
     public void orderConfirmation(@RequestBody OrderStatusRequestDTO dto) {
         orderService.orderConfirm(dto);
     }
-
-
-
-
 
 }
