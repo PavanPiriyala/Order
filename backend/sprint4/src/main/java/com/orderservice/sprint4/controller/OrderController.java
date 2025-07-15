@@ -3,6 +3,7 @@ package com.orderservice.sprint4.controller;
 import com.orderservice.sprint4.dto.*;
 import com.orderservice.sprint4.model.OrderItem;
 import com.orderservice.sprint4.service.OrderService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,15 +14,16 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/orders")
-@CrossOrigin("*")
 public class OrderController {
     @Autowired
     private OrderService orderService;
 
     @PostMapping("/create")
-    public ResponseEntity<List<OrderItemInventoryDTO>> createOrder(@RequestBody OrderDetailsRequestDTO dto){
+    public ResponseEntity<List<OrderItemInventoryDTO>> createOrder(@RequestBody OrderDetailsRequestDTO dto,HttpServletRequest request){
         try{
-            List<OrderItemInventoryDTO> itmes = orderService.createOrderTransaction(dto);
+            String header = request.getHeader("Authorization");
+            String token = header.substring(7);
+            List<OrderItemInventoryDTO> itmes = orderService.createOrderTransaction(dto,token);
             return ResponseEntity.ok(itmes);
         }catch (Exception e){
             return ResponseEntity.internalServerError().body(Collections.emptyList());
@@ -51,7 +53,7 @@ public class OrderController {
 
 
     @PatchMapping("/order/confirm")
-    public void orderConfirmation(@RequestBody OrderStatusRequestDTO dto) {
+    public void orderConfirmation(@RequestBody OrderStatusRequestDTO dto, HttpServletRequest request) {
         orderService.orderConfirm(dto);
     }
 

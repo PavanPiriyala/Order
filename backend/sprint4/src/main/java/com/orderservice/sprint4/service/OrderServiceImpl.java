@@ -13,6 +13,7 @@ import com.orderservice.sprint4.repository.OrderInvoiceRepository;
 import com.orderservice.sprint4.repository.OrderItemRepository;
 import com.orderservice.sprint4.repository.OrderRepository;
 import com.orderservice.sprint4.repository.ShipmentItemRepository;
+import com.orderservice.sprint4.security.JwtUtil;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +24,8 @@ import org.springframework.web.client.RestTemplate;
 import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -38,6 +41,12 @@ public class OrderServiceImpl implements OrderService{
 
     @Autowired
     private RestTemplate restTemplate;
+
+    @Autowired
+    private JavaMailSender mailSender;
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
 
     @Autowired
@@ -55,7 +64,7 @@ public class OrderServiceImpl implements OrderService{
 
     @Override
     @Transactional
-    public List<OrderItemInventoryDTO> createOrderTransaction(OrderDetailsRequestDTO dto) {
+    public List<OrderItemInventoryDTO> createOrderTransaction(OrderDetailsRequestDTO dto,String token) {
         try {
 
             validateUser(dto.getUserId());
@@ -127,7 +136,7 @@ public class OrderServiceImpl implements OrderService{
             invoice.setInvoiceNumber(invoiceNumber);
 
             orderInvoiceRepository.save(invoice);
-
+            sendEmail(token);
             return inventoryDTOS;
 
         } catch (Exception e) {
@@ -246,6 +255,15 @@ public class OrderServiceImpl implements OrderService{
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
         String timestamp = LocalDateTime.now().format(formatter);
         return "TRK-"+timestamp+"-"+orderId+"-"+orderItemId;
+    }
+
+    public void sendEmail(String token){
+        String email = jwtUtil.getUsernameFromToken(token);
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(email);
+        message.setSubject("Order Confirmation Mail");
+        message.setText("Your order has been confirmed.");
+        mailSender.send(message);
     }
 
 
