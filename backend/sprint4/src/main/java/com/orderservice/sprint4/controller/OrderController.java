@@ -3,6 +3,7 @@ package com.orderservice.sprint4.controller;
 import com.orderservice.sprint4.dto.*;
 import com.orderservice.sprint4.model.OrderItem;
 import com.orderservice.sprint4.service.OrderService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,16 +14,17 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/orders")
-@CrossOrigin("*")
 public class OrderController {
     @Autowired
     private OrderService orderService;
 
     //Changes By Bipul : as Now No need to send Order-Items Id back To cart_and_checkout.
     @PostMapping("/create")
-    public ResponseEntity<OrderResponseDTO> createOrder(@RequestBody OrderDetailsRequestDTO dto) {
+    public ResponseEntity<OrderResponseDTO> createOrder(@RequestBody OrderDetailsRequestDTO dto,HttpServletRequest request) {
         try {
-            OrderResponseDTO response = orderService.createOrderTransaction(dto);
+            String header = request.getHeader("Authorization");
+            String token = header.substring(7);
+            OrderResponseDTO response = orderService.createOrderTransaction(dto,token);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(
@@ -47,6 +49,7 @@ public class OrderController {
 
     @GetMapping("/list/{month}")
     public ResponseEntity<?> getOrdersList(@PathVariable Integer month){
+        System.out.println("In list method");
         try{
             List<OrderSummaryDTO> orders = orderService.getOrders(month);
             return ResponseEntity.ok(orders);

@@ -9,7 +9,7 @@ public interface OrderService {
 
     void orderConfirm(OrderStatusRequestDTO dto);
     //Changed
-    OrderResponseDTO createOrderTransaction(OrderDetailsRequestDTO dto);
+    OrderResponseDTO createOrderTransaction(OrderDetailsRequestDTO dto,String token);
     OrderDetailsResponseDTO getOrderDetails(Integer orderId);
     List<OrderSummaryDTO> getOrders(Integer months);
 }
