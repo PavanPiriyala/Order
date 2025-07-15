@@ -24,7 +24,7 @@ public class OrderController {
         try {
             String header = request.getHeader("Authorization");
             String token = header.substring(7);
-            OrderResponseDTO response = orderService.createOrderTransaction(dto);
+            OrderResponseDTO response = orderService.createOrderTransaction(dto,token);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(
@@ -49,6 +49,7 @@ public class OrderController {
 
     @GetMapping("/list/{month}")
     public ResponseEntity<?> getOrdersList(@PathVariable Integer month){
+        System.out.println("In list method");
         try{
             List<OrderSummaryDTO> orders = orderService.getOrders(month);
             return ResponseEntity.ok(orders);

@@ -72,7 +72,7 @@ public class OrderServiceImpl implements OrderService{
 
     @Override
     @Transactional
-    public List<OrderItemInventoryDTO> createOrderTransaction(OrderDetailsRequestDTO dto) {
+    public OrderResponseDTO createOrderTransaction(OrderDetailsRequestDTO dto,String token) {
         try {
 
             validateUser(dto.getUserId());
@@ -138,16 +138,34 @@ public class OrderServiceImpl implements OrderService{
             invoice.setInvoiceNumber(generateInvoiceNumber(dto.getUserId(), String.valueOf(dto.getPaymentMode())));
             orderInvoiceRepository.save(invoice);
 
+
             // Call inventory To update here
             try {
                 updateInventoryStock(inventoryPayload);
-                sendEmail(token);
+
+                savedOrderItems.forEach(item ->{
+                    ShipmentItem shipmentItem = new ShipmentItem();
+                    shipmentItem.setOrderItem(item);
+                    shipmentItem.setItemTrackingId(generateTrackingId(item.getOrder().getOrderId(), item.getOrderItemId()));
+                    shipmentItem.setItemStatus(ShipmentItemStatus.Pending);
+                    shipmentItem.setShipmentDate(LocalDateTime.now());
+                    shipmentItem.setDeliveredDate(LocalDateTime.now().plusDays(7));
+                    shipmentItemRepository.save(shipmentItem);
+                });
+
+                sendEmail(token,true);
                 return OrderResponseDTO.builder()
                         .orderItemIds(skuToOrderItemIdMap)
                         .status("success")
                         .build();
-                sendEmail(token);
-            } catch (InventoryException ex) {
+            } catch (Exception ex) {
+                savedOrder.setOrderStatus(OrderStatus.Failed);
+                orderRepository.saveAndFlush(savedOrder);
+                savedOrderItems.stream().forEach(item->{
+                    item.setStatus(OrderItemStatus.Failed);
+                    orderItemRepository.save(item);
+                });
+                sendEmail(token,false);
                 return OrderResponseDTO.builder()
                         .orderItemIds(skuToOrderItemIdMap)
                         .status("failure")
@@ -223,7 +241,7 @@ public class OrderServiceImpl implements OrderService{
                 throw new OrderNotFoundException("No recent orders found for user ID: " + userId);
             }
 
-            List<OrderSummaryDTO> response = null; // Added By Bipul Since No Response was Found
+            List<OrderSummaryDTO> response = new ArrayList<>(); // Added By Bipul Since No Response was Found
             for(Order order: orders){
                 OrderSummaryDTO summaryDTO = new OrderSummaryDTO();
                 summaryDTO.setOrderId(order.getOrderId());
@@ -289,18 +307,29 @@ public class OrderServiceImpl implements OrderService{
             restTemplate.exchange(INVENTORY_UPDATE_URL, HttpMethod.POST, requestEntity, Void.class);
         } catch (RestClientException ex) {
             throw new InventoryException("Failed to update inventory", ex);
+        } catch (Exception e){
+            throw new RuntimeException("Something went wrong");
         }
     }
 
-    public void sendEmail(String token){
+    public void sendEmail(String token,boolean status){
         String email = jwtUtil.getUsernameFromToken(token);
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(email);
-        message.setSubject("Order Confirmation Mail");
-        message.setText("Your order has been confirmed.");
+        String subject = "";
+        String msg = "";
+        if(status){
+            subject = "Order Confirmation Mail";
+            msg = "Your order has been Confirmed.";
+        }else{
+            subject = "Order Failure Mail";
+            msg = "Your order has been Failed.";
+        }
+        message.setSubject(subject);
+        message.setText(msg);
         mailSender.send(message);
-    }
 
+    }
 
     @Override
     public void orderConfirm(OrderStatusRequestDTO dto) {
