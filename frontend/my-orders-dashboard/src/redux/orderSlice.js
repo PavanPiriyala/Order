@@ -6,7 +6,7 @@ export const fetchOrdersThunk = createAsyncThunk(
   'orders/fetchOrders',
   async (months) => {
     const response = await fetchOrders(months); // your API call
-    return response.orders || [];
+    return response || [];
   }
 );
 

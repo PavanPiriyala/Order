@@ -18,15 +18,21 @@ public class OrderController {
     @Autowired
     private OrderService orderService;
 
+    //Changes By Bipul : as Now No need to send Order-Items Id back To cart_and_checkout.
     @PostMapping("/create")
-    public ResponseEntity<List<OrderItemInventoryDTO>> createOrder(@RequestBody OrderDetailsRequestDTO dto,HttpServletRequest request){
-        try{
+    public ResponseEntity<OrderResponseDTO> createOrder(@RequestBody OrderDetailsRequestDTO dto,HttpServletRequest request) {
+        try {
             String header = request.getHeader("Authorization");
             String token = header.substring(7);
-            List<OrderItemInventoryDTO> itmes = orderService.createOrderTransaction(dto,token);
-            return ResponseEntity.ok(itmes);
-        }catch (Exception e){
-            return ResponseEntity.internalServerError().body(Collections.emptyList());
+            OrderResponseDTO response = orderService.createOrderTransaction(dto);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(
+                    OrderResponseDTO.builder()
+                            .orderItemIds(Collections.emptyMap())
+                            .status("failure")
+                            .build()
+            );
         }
     }
 
@@ -53,12 +59,8 @@ public class OrderController {
 
 
     @PatchMapping("/order/confirm")
-    public void orderConfirmation(@RequestBody OrderStatusRequestDTO dto, HttpServletRequest request) {
+    public void orderConfirmation(@RequestBody OrderStatusRequestDTO dto) {
         orderService.orderConfirm(dto);
     }
-
-
-
-
 
 }
