@@ -109,7 +109,8 @@ public class AdminServiceImpl implements AdminService{
         if (itemStatus == null ||
                 !(itemStatus == ShipmentItemStatus.Pending ||
                         itemStatus == ShipmentItemStatus.InTransit ||
-                        itemStatus == ShipmentItemStatus.Delivered)) {
+                        itemStatus == ShipmentItemStatus.Delivered ||
+                        itemStatus == ShipmentItemStatus.Cancelled)) {
             throw new RuntimeException("Wrong Input");
         }
 
