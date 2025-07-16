@@ -18,7 +18,7 @@ function ShipmentDetails() {
 
   if (!data) return <p>Loading shipment data...</p>;
 
-  const { items } = data;
+  const { Shipment, Products, InvoiceDetails } = data;
 
   const getDateOnly = (dateString) => dateString?.split('T')[0] || '';
 
@@ -51,27 +51,27 @@ const handleDownloadInvoice = async (invoiceId) => {
 
             <div className="order-detail">
               <span className="order-label">Shipment ID</span>
-              {/* <span className="order-value">{Shipment.shipmentID}</span> */}
+              <span className="order-value">{Shipment.shipmentID}</span>
             </div>
 
             <div className="order-detail">
               <span className="order-label">Status</span>
-              <span className="order-value">{data.orderStatus}</span>
+              <span className="order-value">{Shipment.shipmentStatus}</span>
             </div>
 
-            {/* <div className="order-detail">
+            <div className="order-detail">
               <span className="order-label">Tracking ID</span>
               <span className="order-value">{Shipment.shipmentTrackingId}</span>
-            </div> */}
-
-            <div className="order-detail">
-              <span className="order-label">Payment Mode</span>
-              <span className="order-value">{data.paymentMode}</span>
             </div>
 
             <div className="order-detail">
-              <span className="order-label">Ordered Date</span>
-              <span className="order-value">{getDateOnly(data.orderDate)}</span>
+              <span className="order-label">Shipped Date</span>
+              <span className="order-value">{getDateOnly(Shipment.shipmentDate)}</span>
+            </div>
+
+            <div className="order-detail">
+              <span className="order-label">Delivered Date</span>
+              <span className="order-value">{getDateOnly(Shipment.deliveredDate)}</span>
             </div>
 
           </div>
@@ -84,32 +84,26 @@ const handleDownloadInvoice = async (invoiceId) => {
         <table className="items-table">
           <thead>
             <tr>
-              <th>Product</th>
-              <th>Tracking Id</th>
+              <th>Product ID</th>
               <th>SKU</th>
               <th>Quantity</th>
-              <th>Status</th>
-              <th>Shipment Date</th>
-              <th>Delivery Date</th>
+              <th>Price</th>
             </tr>
           </thead>
           <tbody>
-            {items.map((item, i) => (
+            {Products.map((item, i) => (
               <tr key={i}>
-                <td>{item.product}</td>
-                <td>{item.trackingId}</td>
+                <td><a href="#" className="product-name">{item.productID}</a></td>
                 <td>{item.sku}</td>
-                <td>{item.quantity}</td>
-                <td>{item.itemStatus}</td>
-                <td>{getDateOnly(item.shipmentDate)}</td>
-                <td>{getDateOnly(item.deliveredDate)}</td>
+                <td className="quantity">{item.quantity}</td>
+                <td>₹{item.price}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
 
-      {/* Invoice Section
+      {/* Invoice Section */}
       <div className="section invoice-section">
         <div className="order-info-shipment">
           <div className="order-info-title">Invoice Details</div>
@@ -132,7 +126,7 @@ const handleDownloadInvoice = async (invoiceId) => {
             </div>
           </div>
         </div>
-      </div> */}
+      </div>
 
       {/* ✅ Download Invoice Button */}
       <div style={{ marginTop: '20px', textAlign: 'right' }}>

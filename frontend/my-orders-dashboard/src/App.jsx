@@ -1,21 +1,14 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import OrderDashboard from './components/OrderDashboard/OrderDashboard';
-import OrderActions from './components/OrderActions/OrderActions';
-import OrderDetails from './components/OrderDetails/OrderDetails';
-import ShipmentDetails from './components/ShipmentDetails/ShipmentDetails';
+import OmsApp from './pages/oms/OmsApp';
 
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<OrderDashboard />} />
-        <Route path="/actions" element={<OrderActions />} />
-        <Route path="/details" element={<OrderDetails />} />
-        <Route path="/shipment" element={<ShipmentDetails />} />
-      </Routes>
+    <Routes>
+      <Route path="/oms/*" element={<OmsApp />} />    
+    </Routes>
     </BrowserRouter>
   );
 }
-
 export default App;

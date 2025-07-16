@@ -154,10 +154,10 @@ public class OrderServiceImpl implements OrderService{
                 });
 
                 sendEmail(token,true);
-                return OrderResponseDTO.builder()
-                        .orderItemIds(skuToOrderItemIdMap)
-                        .status("success")
-                        .build();
+                OrderResponseDTO responseDTO = new OrderResponseDTO();
+                responseDTO.setOrderItemIds(skuToOrderItemIdMap);
+                responseDTO.setStatus("success");
+                return responseDTO;
             } catch (Exception ex) {
                 savedOrder.setOrderStatus(OrderStatus.Failed);
                 orderRepository.saveAndFlush(savedOrder);
@@ -166,10 +166,10 @@ public class OrderServiceImpl implements OrderService{
                     orderItemRepository.save(item);
                 });
                 sendEmail(token,false);
-                return OrderResponseDTO.builder()
-                        .orderItemIds(skuToOrderItemIdMap)
-                        .status("failure")
-                        .build();
+                OrderResponseDTO responseDTO = new OrderResponseDTO();
+                responseDTO.setOrderItemIds(skuToOrderItemIdMap);
+                responseDTO.setStatus("failure");
+                return responseDTO;
             }
 
         } catch (Exception e) {

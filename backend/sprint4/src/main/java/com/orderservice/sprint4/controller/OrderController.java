@@ -27,12 +27,10 @@ public class OrderController {
             OrderResponseDTO response = orderService.createOrderTransaction(dto,token);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(
-                    OrderResponseDTO.builder()
-                            .orderItemIds(Collections.emptyMap())
-                            .status("failure")
-                            .build()
-            );
+            OrderResponseDTO responseDTO = new OrderResponseDTO();
+            responseDTO.setOrderItemIds(Collections.emptyMap());
+            responseDTO.setStatus("failure");
+            return ResponseEntity.internalServerError().body(responseDTO);
         }
     }
 
