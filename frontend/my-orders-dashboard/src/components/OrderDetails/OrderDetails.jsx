@@ -19,31 +19,26 @@ function OrderDetails() {
   if (error) return <p style={{ color: 'red' }}>{error}</p>;
   if (loading || !data) return <p>Loading...</p>;
 
-  const { orderStatus, orderTotal, orderItems = [] } = data;
+  const { orderStatus, total, products = [] } = data.orderDetails;
 
   return (
     <div className="container">
       <h1>Order Details</h1>
       <p><strong>Order ID:</strong> {orderId}</p>
       <p><strong>Status:</strong> {orderStatus}</p>
-      <p><strong>Total:</strong> ₹{Number(orderTotal).toFixed(2)}</p>
+      <p><strong>Total:</strong> ₹{Number(total).toFixed(2)}</p>
       <table>
         <thead>
-          <tr><th>OrderItemId</th><th>Product</th><th>SKU</th><th>Qty</th><th>UnitPrice</th><th>Discount</th><th>FinalPrice</th><th>Size</th><th>Status</th><th>SellerId</th></tr>
+          <tr><th>Product</th><th>SKU</th><th>Qty</th><th>Price</th><th>Status</th></tr>
         </thead>
         <tbody>
-          {orderItems.map((item, i) => (
+          {products.map((item, i) => (
             <tr key={i}>
-              <td>{item.orderItemId}</td>
-              <td>{item.productId}</td>
+              <td>{item.productID}</td>
               <td>{item.sku}</td>
               <td>{item.quantity}</td>
-              <td>₹{item.unitPrice}</td>
-              <td>₹{item.discount}</td>
-              <td>₹{item.finalPrice}</td>
-              <td>{item.size}</td>  
+              <td>₹{item.price}</td>
               <td>{item.status}</td>
-              <td>{item.sellerId}</td>
             </tr>
           ))}
         </tbody>
