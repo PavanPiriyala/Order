@@ -57,6 +57,22 @@ public class JwtUtil {
         }
     }
 
+    public boolean validateAdminRole(String token) {
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+
+            List<String> roles = (List<String>) claims.get("roles");
+
+            return roles != null && roles.stream().anyMatch(role -> role.equals("oms_admin"));
+        } catch (JwtException | IllegalArgumentException e) {
+            throw new JwtAuthenticationException("Invalid JWT token", e);
+        }
+    }
+
     public boolean validateJwtToken(String authToken) {
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(authToken);
