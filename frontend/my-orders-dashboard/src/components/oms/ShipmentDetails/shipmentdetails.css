@@ -1,0 +1,77 @@
+.container {
+  padding: 20px;
+}
+
+ul {
+  list-style-type: disc;
+  padding-left: 20px;
+}
+
+ul li {
+  margin-bottom: 6px;
+}
+
+button {
+  margin-top: 10px;
+  padding: 8px 12px;
+  color: rgb(23, 22, 22);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.shipment-section,
+.items-section,
+.invoice-section {
+  background: #f9f9f9;
+  padding: 20px;
+  margin-top: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.order-info-shipment {
+  width: 100%;
+}
+ 
+.order-details {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+
+
+.order-detail {
+  display: flex;
+  flex-grow: 1;
+  gap: 15px;
+  max-width: 300px;
+  word-wrap: break-word;
+  box-sizing: border-box;
+}
+
+
+ .details-row {
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.detail-box {
+  flex: 1;
+  display: block;
+  min-width: 300px;
+  background: #f4f4f4;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+} 

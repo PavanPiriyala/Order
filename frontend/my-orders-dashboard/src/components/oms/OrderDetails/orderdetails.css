@@ -1,0 +1,80 @@
+.container {
+  margin: 40px auto;
+  padding: 30px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+
+
+h1 {
+  font-size: 2rem;
+  margin-bottom: 20px;
+  color: #333;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 10px;
+}
+
+p {
+  font-size: 1rem;
+  margin: 10px 0;
+  color: #444;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 25px;
+  background: #f9f9f9;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+thead {
+  color: rgb(19, 17, 17);
+}
+
+th, td {
+  padding: 14px 16px;
+  text-align: left;
+}
+
+tbody tr:nth-child(even) {
+  background: #f2f2f2;
+}
+
+tbody tr:hover {
+  background: #e0e7ff;
+}
+
+button {
+  margin-top: 25px;
+  padding: 12px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgb(11, 11, 11);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+button:hover {
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 20px;
+  }
+
+  table, thead, tbody, th, td, tr {
+    font-size: 0.9rem;
+  }
+
+  h1 {
+    font-size: 1.6rem;
+  }
+}
