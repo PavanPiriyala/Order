@@ -44,7 +44,7 @@ public class LoginServiceImpl implements LoginService {
 
             String token = body.getToken();
 
-            if (jwtUtil.validateAdminRole(token)) {
+            if (jwtUtil.validateJwtToken(token)) {
                 return token;
             } else {
                 throw new RuntimeException("Something went wrong with Login Service");
