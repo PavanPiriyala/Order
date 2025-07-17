@@ -1,144 +1,165 @@
-//package com.orderservice.sprint4.service;
-//
-//import com.orderservice.sprint4.dto.LoginDTO;
-//import com.orderservice.sprint4.dto.LoginResponseDTO;
-//import com.orderservice.sprint4.exception.ExternalServiceException;
-//import com.orderservice.sprint4.exception.InvalidLoginException;
-//import com.orderservice.sprint4.service.impl.LoginServiceImpl;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.Test;
-//import org.mockito.*;
-//import org.springframework.http.*;
-//import org.springframework.test.util.ReflectionTestUtils;
-//import org.springframework.web.client.*;
-//
-//import static org.junit.jupiter.api.Assertions.*;
-//import static org.mockito.Mockito.*;
-//
-//class LoginServiceImplTest {
-//
-//    @InjectMocks
-//    private LoginServiceImpl loginService;
-//
-//    @Mock
-//    private RestTemplate restTemplate;
-//
-//    @Captor
-//    ArgumentCaptor<LoginDTO> loginCaptor;
-//
-//    private final String loginUrl = "http://localhost:8090/api/auth/login";
-//
-//    @BeforeEach
-//    void setUp() {
-//        MockitoAnnotations.openMocks(this);
-//        // restTemplate is already injected by @Mock + @InjectMocks
-//        // Inject value into private field using reflection
-//        ReflectionTestUtils.setField(loginService, "LOGIN_SERVICE_LOGIN_VALIDATION_URL", loginUrl);
-//    }
-//
-//
-//
-//    @Test
-//    void testSuccessfulLoginReturnsToken() {
-//        LoginDTO dto = new LoginDTO();
-//        dto.setEmail("test@example.com");
-//        dto.setPassword("password");
-//        LoginResponseDTO responseDTO = new LoginResponseDTO();
-//        responseDTO.setToken("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwcGlyeWFsYUBuaXN1bS5jb20iLCJyb2xlcyI6WyJjdXN0b21lciIsIm9tc19hZG1pbiJdLCJpYXQiOjE3NTIxNDYzOTcsImV4cCI6MTg1MjIzMjc5N30.J4sj_79kRNHyzdOLnbGYccVoTiqA17xopAN_B2BQFTk");
-//
-//        ResponseEntity<LoginResponseDTO> response = ResponseEntity.ok(responseDTO);
-//
-//        when(restTemplate.postForEntity(eq(loginUrl), eq(dto), eq(LoginResponseDTO.class)))
-//                .thenReturn(response);
-//
-//        String token = loginService.validateLogin(dto);
-//        assertEquals("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwcGlyeWFsYUBuaXN1bS5jb20iLCJyb2xlcyI6WyJjdXN0b21lciIsIm9tc19hZG1pbiJdLCJpYXQiOjE3NTIxNDYzOTcsImV4cCI6MTg1MjIzMjc5N30.J4sj_79kRNHyzdOLnbGYccVoTiqA17xopAN_B2BQFTk", token);
-//    }
-//
-//    @Test
-//    void testLoginReturnsErrorStatus() {
-//        LoginDTO dto = new LoginDTO();
-//        dto.setEmail("test@example.com");
-//        dto.setPassword("password");
-//        ResponseEntity<LoginResponseDTO> errorResponse = ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-//
-//        when(restTemplate.postForEntity(eq(loginUrl), eq(dto), eq(LoginResponseDTO.class)))
-//                .thenReturn(errorResponse);
-//
-//        assertThrows(InvalidLoginException.class, () -> loginService.validateLogin(dto));
-//    }
-//
-//    @Test
-//    void testLoginReturnsNullBody() {
-//        LoginDTO dto = new LoginDTO();
-//        dto.setEmail("test@example.com");
-//        dto.setPassword("password");
-//        ResponseEntity<LoginResponseDTO> response = ResponseEntity.ok(null);
-//
-//        when(restTemplate.postForEntity(eq(loginUrl), eq(dto), eq(LoginResponseDTO.class)))
-//                .thenReturn(response);
-//
-//        assertThrows(InvalidLoginException.class, () -> loginService.validateLogin(dto));
-//    }
-//
-//    @Test
-//    void testLoginReturnsBlankToken() {
-//        LoginDTO dto = new LoginDTO();
-//        dto.setEmail("test@example.com");
-//        dto.setPassword("password");
-//        LoginResponseDTO responseDTO = new LoginResponseDTO();
-//        responseDTO.setToken("");
-//        ResponseEntity<LoginResponseDTO> response = ResponseEntity.ok(responseDTO);
-//
-//        when(restTemplate.postForEntity(eq(loginUrl), eq(dto), eq(LoginResponseDTO.class)))
-//                .thenReturn(response);
-//
-//        assertThrows(InvalidLoginException.class, () -> loginService.validateLogin(dto));
-//    }
-//
-//    @Test
-//    void testHttpClientErrorThrowsInvalidLoginException() {
-//        LoginDTO dto = new LoginDTO();
-//        dto.setEmail("test@example.com");
-//        dto.setPassword("password");
-//
-//        when(restTemplate.postForEntity(eq(loginUrl), eq(dto), eq(LoginResponseDTO.class)))
-//                .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
-//
-//        assertThrows(InvalidLoginException.class, () -> loginService.validateLogin(dto));
-//    }
-//
-//    @Test
-//    void testHttpServerErrorThrowsExternalServiceException() {
-//        LoginDTO dto = new LoginDTO();
-//        dto.setEmail("test@example.com");
-//        dto.setPassword("password");
-//        when(restTemplate.postForEntity(eq(loginUrl), eq(dto), eq(LoginResponseDTO.class)))
-//                .thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR));
-//
-//        assertThrows(ExternalServiceException.class, () -> loginService.validateLogin(dto));
-//    }
-//
-//    @Test
-//    void testResourceAccessExceptionThrowsExternalServiceException() {
-//        LoginDTO dto = new LoginDTO();
-//        dto.setEmail("test@example.com");
-//        dto.setPassword("password");
-//        when(restTemplate.postForEntity(eq(loginUrl), eq(dto), eq(LoginResponseDTO.class)))
-//                .thenThrow(new ResourceAccessException("Timeout"));
-//
-//        assertThrows(ExternalServiceException.class, () -> loginService.validateLogin(dto));
-//    }
-//
-//    @Test
-//    void testUnexpectedExceptionThrowsExternalServiceException() {
-//        LoginDTO dto = new LoginDTO();
-//        dto.setEmail("test@example.com");
-//        dto.setPassword("password");
-//
-//        when(restTemplate.postForEntity(eq(loginUrl), eq(dto), eq(LoginResponseDTO.class)))
-//                .thenThrow(new RuntimeException("Unexpected"));
-//
-//        assertThrows(ExternalServiceException.class, () -> loginService.validateLogin(dto));
-//    }
-//}
+
+package com.orderservice.sprint4.service;
+
+import com.orderservice.sprint4.dto.LoginDTO;
+import com.orderservice.sprint4.dto.LoginResponseDTO;
+import com.orderservice.sprint4.exception.ExternalServiceException;
+import com.orderservice.sprint4.exception.InvalidLoginException;
+import com.orderservice.sprint4.security.JwtUtil;
+import com.orderservice.sprint4.service.impl.LoginServiceImpl;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestTemplate;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+
+class LoginServiceImplTest {
+
+    @Mock
+    private RestTemplate restTemplate;
+
+    @Mock
+    private JwtUtil jwtUtil;
+
+    @InjectMocks
+    private LoginServiceImpl loginService;
+
+    private LoginDTO loginDTO;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        loginDTO = new LoginDTO();
+    }
+
+    @Test
+    void testValidateLogin_Success_AdminRole() {
+        LoginResponseDTO responseDTO = new LoginResponseDTO();
+        responseDTO.setToken("valid-token");
+        ResponseEntity<LoginResponseDTO> responseEntity =
+                new ResponseEntity<>(responseDTO, HttpStatus.OK);
+
+        when(restTemplate.postForEntity(any(String.class),
+                any(LoginDTO.class),
+                eq(LoginResponseDTO.class)))
+                .thenReturn(responseEntity);
+        when(jwtUtil.validateAdminRole("valid-token")).thenReturn(true);
+
+        String token = loginService.validateLogin(loginDTO);
+
+        assertEquals("valid-token", token);
+        verify(restTemplate).postForEntity(any(String.class),
+                any(LoginDTO.class),
+                eq(LoginResponseDTO.class));
+        verify(jwtUtil).validateAdminRole("valid-token");
+    }
+
+    @Test
+    void testValidateLogin_ResponseErrorStatus() {
+        ResponseEntity<LoginResponseDTO> responseEntity =
+                new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+
+        when(restTemplate.postForEntity(any(String.class),
+                any(LoginDTO.class),
+                eq(LoginResponseDTO.class)))
+                .thenReturn(responseEntity);
+
+        InvalidLoginException ex = assertThrows(InvalidLoginException.class,
+                () -> loginService.validateLogin(loginDTO));
+        assertTrue(ex.getMessage().contains("Login service returned error"));
+    }
+
+    @Test
+    void testValidateLogin_NullOrBlankToken() {
+        LoginResponseDTO responseDTO = new LoginResponseDTO();
+        responseDTO.setToken("");
+        ResponseEntity<LoginResponseDTO> responseEntity =
+                new ResponseEntity<>(responseDTO, HttpStatus.OK);
+
+        when(restTemplate.postForEntity(any(String.class),
+                any(LoginDTO.class),
+                eq(LoginResponseDTO.class)))
+                .thenReturn(responseEntity);
+
+        InvalidLoginException ex = assertThrows(InvalidLoginException.class,
+                () -> loginService.validateLogin(loginDTO));
+        assertTrue(ex.getMessage().contains("Login failed: token not found"));
+    }
+
+    @Test
+    void testValidateLogin_JwtUtilNotAdmin() {
+        LoginResponseDTO responseDTO = new LoginResponseDTO();
+        responseDTO.setToken("valid-token");
+        ResponseEntity<LoginResponseDTO> responseEntity =
+                new ResponseEntity<>(responseDTO, HttpStatus.OK);
+
+        when(restTemplate.postForEntity(any(String.class),
+                any(LoginDTO.class),
+                eq(LoginResponseDTO.class)))
+                .thenReturn(responseEntity);
+        when(jwtUtil.validateAdminRole("valid-token")).thenReturn(false);
+
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> loginService.validateLogin(loginDTO));
+        assertEquals("Something went wrong with Login Service", ex.getMessage());
+    }
+
+    @Test
+    void testValidateLogin_HttpClientError() {
+        when(restTemplate.postForEntity(any(String.class),
+                any(LoginDTO.class),
+                eq(LoginResponseDTO.class)))
+                .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Bad Request"));
+
+        InvalidLoginException ex = assertThrows(InvalidLoginException.class,
+                () -> loginService.validateLogin(loginDTO));
+        assertTrue(ex.getMessage().contains("Invalid credentials or bad request"));
+    }
+
+    @Test
+    void testValidateLogin_HttpServerError() {
+        when(restTemplate.postForEntity(any(String.class),
+                any(LoginDTO.class),
+                eq(LoginResponseDTO.class)))
+                .thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Server Error"));
+
+        ExternalServiceException ex = assertThrows(ExternalServiceException.class,
+                () -> loginService.validateLogin(loginDTO));
+        assertTrue(ex.getMessage().contains("Login service failed"));
+    }
+
+    @Test
+    void testValidateLogin_ResourceAccess() {
+        when(restTemplate.postForEntity(any(String.class),
+                any(LoginDTO.class),
+                eq(LoginResponseDTO.class)))
+                .thenThrow(new ResourceAccessException("I/O error"));
+
+        ExternalServiceException ex = assertThrows(ExternalServiceException.class,
+                () -> loginService.validateLogin(loginDTO));
+        assertTrue(ex.getMessage().contains("Unable to reach login service"));
+    }
+
+    @Test
+    void testValidateLogin_UnexpectedException() {
+        when(restTemplate.postForEntity(any(String.class),
+                any(LoginDTO.class),
+                eq(LoginResponseDTO.class)))
+                .thenThrow(new RuntimeException("Unexpected"));
+
+        ExternalServiceException ex = assertThrows(ExternalServiceException.class,
+                () -> loginService.validateLogin(loginDTO));
+        assertTrue(ex.getMessage().contains("Unexpected error during login"));
+    }
+}
